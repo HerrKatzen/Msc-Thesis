@@ -216,6 +216,102 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &1099160508
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1099160511}
+  - component: {fileID: 1099160510}
+  - component: {fileID: 1099160509}
+  m_Layer: 0
+  m_Name: Clarke83-2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1099160509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099160508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd61d3ed5781f2f489f3aedf7399c11b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vesselName: Clarke83
+  rpm: 0
+  vCurr: 0
+  betaVCurr: 0
+  rudAngle: 0
+  controlSystem: 0
+  eta:
+    north: 0
+    east: 0
+    down: 0
+    roll: 0
+    pitch: 0
+    yaw: 0
+  linSpeed: {x: 0, y: 0, z: 0}
+  torSpeed: {x: 0, y: 0, z: 0}
+  lenght: 70
+  draft: 6
+  beam: 8
+  blockCoef: 0.7
+  lambda: 0.7
+  rudMax: 30
+  rudRateMax: 5
+  propMax: 90
+  rudTimeDelta: 1
+  speed: 0
+  tau_X: 100000
+  R66: 0
+--- !u!114 &1099160510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099160508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d151a3bab25108a4c921f53b486bc58f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eta:
+    north: -600
+    east: -40
+    down: 0
+    roll: 0
+    pitch: 0
+    yaw: 3.14
+  linearSpeed: {x: -2, y: 0, z: 0}
+  torqueSpeed: {x: 0, y: 0, z: 0}
+  NEWayPoints:
+  - {x: -400, y: -20}
+  - {x: 0, y: 0}
+  - {x: -300, y: -200}
+--- !u!4 &1099160511
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099160508}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1330312616
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,8 +375,9 @@ MonoBehaviour:
   enviroment: {fileID: 1330312618}
   vessels:
   - {fileID: 1822494776}
+  - {fileID: 1099160509}
   simulationTime: 0.02
-  timeToSimulate: 600
+  timeToSimulate: 0.06
 --- !u!114 &1330312620
 MonoBehaviour:
   m_ObjectHideFlags: 0

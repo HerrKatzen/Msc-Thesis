@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SimpleJSON;
 
 [RequireComponent(typeof(StartPoint))]
 public abstract class BaseVessel : MonoBehaviour
@@ -204,11 +205,62 @@ public abstract class BaseVessel : MonoBehaviour
             timeStamp = time;
         }
 
+        public DataBundle(JSONNode bundleDataNode)
+        {
+            rudderAngle = bundleDataNode["rudderAngle"].AsFloat;
+            rudderCommand = bundleDataNode["rudderCommand"].AsFloat;
+            timeStamp = bundleDataNode["timeStamp"].AsFloat;
+
+            JSONNode etaNode = bundleDataNode["eta"];
+            eta = new Eta();
+            eta.north = etaNode["north"].AsFloat;
+            eta.east = etaNode["east"].AsFloat;
+            eta.down = etaNode["down"].AsFloat;
+            eta.roll = etaNode["roll"].AsFloat;
+            eta.pitch = etaNode["pitch"].AsFloat;
+            eta.yaw = etaNode["yaw"].AsFloat;
+
+            JSONNode linearSpeedNode = bundleDataNode["linearSpeed"];
+            linearSpeed = new Vector3(linearSpeedNode["x"].AsFloat, linearSpeedNode["y"].AsFloat, linearSpeedNode["z"].AsFloat);
+            JSONNode torqueSpeedNode = bundleDataNode["torqueSpeed"];
+            torqueSpeed = new Vector3(torqueSpeedNode["x"].AsFloat, torqueSpeedNode["y"].AsFloat, torqueSpeedNode["z"].AsFloat);
+        }
+
         public new string ToString()
         {
             return $"Time: {timeStamp}\nNED: {eta.north}, {eta.east}, {eta.down}\nATT: {eta.roll}, {eta.pitch}, {eta.yaw}\nLinV: " +
                 $"[{linearSpeed.x}, {linearSpeed.y}, {linearSpeed.z}]\nTorV: [{torqueSpeed.x}, {torqueSpeed.y}, {torqueSpeed.z}]" +
                 $"\nRudC: {rudderCommand}\nRudA: {rudderAngle}";
+        }
+
+        public JSONNode ToJsonNode()
+        {
+            JSONNode etaNode = new JSONObject();
+            etaNode["north"] = eta.north;
+            etaNode["east"] = eta.east;
+            etaNode["down"] = eta.down;
+            etaNode["roll"] = eta.roll;
+            etaNode["pitch"] = eta.pitch;
+            etaNode["yaw"] = eta.yaw;
+
+            JSONNode linearSpeedNode = new JSONObject();
+            linearSpeedNode["x"] = linearSpeed.x;
+            linearSpeedNode["y"] = linearSpeed.y;
+            linearSpeedNode["z"] = linearSpeed.z;
+            JSONNode torqueSpeedNode = new JSONObject();
+            torqueSpeedNode["x"] = torqueSpeed.x;
+            torqueSpeedNode["y"] = torqueSpeed.y;
+            torqueSpeedNode["z"] = torqueSpeed.z;
+
+            JSONNode bundleDataNode = new JSONObject();
+            bundleDataNode["eta"] = etaNode;
+            bundleDataNode["linearSpeed"] = linearSpeedNode;
+            bundleDataNode["torqueSpeed"] = torqueSpeedNode;
+            bundleDataNode["rudderAngle"] = rudderAngle;
+            bundleDataNode["rudderCommand"] = rudderCommand;
+            bundleDataNode["timeStamp"] = timeStamp;
+
+            return bundleDataNode;
         }
     }
 }
