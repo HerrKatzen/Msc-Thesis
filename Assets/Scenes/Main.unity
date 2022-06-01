@@ -375,9 +375,8 @@ MonoBehaviour:
   enviroment: {fileID: 1330312618}
   vessels:
   - {fileID: 1822494776}
-  - {fileID: 1099160509}
   simulationTime: 0.02
-  timeToSimulate: 0.06
+  timeToSimulate: 600
 --- !u!114 &1330312620
 MonoBehaviour:
   m_ObjectHideFlags: 0
