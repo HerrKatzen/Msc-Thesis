@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class Clarke83 : BaseVessel
 {
-    public float lenght = 50f;
-    public float draft = 5f;
-    public float beam = 7f;
     public float blockCoef = 0.7f;
     /// <summary>
     /// rudder aspect ratio

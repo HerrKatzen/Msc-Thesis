@@ -7,6 +7,9 @@ using SimpleJSON;
 public abstract class BaseVessel : MonoBehaviour
 {
     public string vesselName = "";
+    public float lenght = 50f;
+    public float draft = 5f;
+    public float beam = 7f;
     public float rpm;
     public float vCurr;
     public float betaVCurr;

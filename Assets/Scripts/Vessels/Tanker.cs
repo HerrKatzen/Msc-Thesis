@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Tanker : BaseVessel
 {
-    public float lenght = 304.8f;
-    public float draft = 18.46f;
     public float rudMax = 30f;
     public float rudRateMax = 5f;
     public float propMax = 90f;
