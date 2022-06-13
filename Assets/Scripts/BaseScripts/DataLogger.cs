@@ -9,9 +9,17 @@ public class DataLogger : Singleton<DataLogger>
     public Dictionary<string, List<BaseVessel.DataBundle>> SimData { get; private set; } = new Dictionary<string, List<BaseVessel.DataBundle>>();
     public Dictionary<string, List<Vector3>> CheckPoints { get; private set; } = new Dictionary<string, List<Vector3>>();
     public float StepTime { get; private set; }
+    public float minNorth = 0f;
+    public float maxNorth = 100f;
+    public float minEast = 0f;
+    public float maxEast = 100f;
 
     public void LogVesselData(string vesselName, BaseVessel.DataBundle dataBundle)
     {
+        minNorth = Mathf.Min(dataBundle.eta.north, minNorth);
+        maxNorth = Mathf.Max(dataBundle.eta.north, maxNorth);
+        minEast = Mathf.Min(dataBundle.eta.east, minEast);
+        maxEast = Mathf.Max(dataBundle.eta.east, maxEast);
         List<BaseVessel.DataBundle> bundles;
         if(SimData.TryGetValue(vesselName, out bundles))
         {
