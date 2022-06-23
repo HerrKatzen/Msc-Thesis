@@ -6,8 +6,6 @@ using UnityEngine;
 public class VesselData : MonoBehaviour
 {
     [SerializeField]
-    private WayPointUI wayPointUI;
-    [SerializeField]
     private StartPoint startPoint;
     private VesselDataPackage dataPackage = null;
     public VesselDataPackage DataPackage { 
@@ -23,6 +21,7 @@ public class VesselData : MonoBehaviour
     }
 
 
+
     [System.Serializable]
     public class VesselDataPackage
     {
@@ -36,13 +35,6 @@ public class VesselData : MonoBehaviour
         }
     }
 
-    [System.Serializable]
-    public class WayPointUI
-    {
-        public TextMeshPro etaN;
-        public TextMeshPro etaE;
-        public TextMeshPro etaD;
-    }
     public void MoveVessel(bool up)
     {
         if (up)
