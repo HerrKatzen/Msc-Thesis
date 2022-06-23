@@ -2383,6 +2383,8 @@ GameObject:
   - component: {fileID: 4761819857805926527}
   - component: {fileID: 4761819857805926524}
   - component: {fileID: 4761819857805926526}
+  - component: {fileID: 8140558232756865925}
+  - component: {fileID: 4547660479520204969}
   m_Layer: 0
   m_Name: VesselListElementPrefab
   m_TagString: Untagged
@@ -2473,6 +2475,45 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8140558232756865925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4761819857805926522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15143bdcb62fc0b4784f49103935bd1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wayPointUI:
+    etaN: {fileID: 0}
+    etaE: {fileID: 0}
+    etaD: {fileID: 0}
+  startPoint: {fileID: 4547660479520204969}
+--- !u!114 &4547660479520204969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4761819857805926522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d151a3bab25108a4c921f53b486bc58f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eta:
+    north: 0
+    east: 0
+    down: 0
+    roll: 0
+    pitch: 0
+    yaw: 0
+  linearSpeed: {x: 0, y: 0, z: 0}
+  torqueSpeed: {x: 0, y: 0, z: 0}
+  NEWayPoints: []
 --- !u!1 &5532317889941305390
 GameObject:
   m_ObjectHideFlags: 0

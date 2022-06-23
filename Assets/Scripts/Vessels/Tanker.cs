@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Tanker : BaseVessel
 {
-    public float rudMax = 30f;
-    public float rudRateMax = 5f;
     public float propMax = 90f;
     public float speed;
 
@@ -21,7 +19,6 @@ public class Tanker : BaseVessel
     private float a_d;
     private float wn_d;
     private float zeta_d = 1.0f;
-    private float rudAngle = 0f;
 
 
     private void Start()

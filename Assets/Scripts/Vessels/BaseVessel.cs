@@ -4,7 +4,6 @@ using UnityEngine;
 using SimpleJSON;
 using System;
 
-[RequireComponent(typeof(StartPoint))]
 public abstract class BaseVessel : MonoBehaviour
 {
     public string vesselName = Guid.NewGuid().ToString();
