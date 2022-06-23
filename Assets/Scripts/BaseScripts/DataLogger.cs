@@ -33,6 +33,11 @@ public class DataLogger : Singleton<DataLogger>
         }
     }
 
+    public void ClearVesselData(string vessel)
+    {
+        SimData.Remove(vessel);
+    }
+
     public void AddVesselInitData(string vesselName, List<Vector2> _points)
     {
         if (CheckPoints.ContainsKey(vesselName))

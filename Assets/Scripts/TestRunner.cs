@@ -13,9 +13,9 @@ public class TestRunner : MonoBehaviour
     public void DisplayPathAndPredictedPathUsingHalfPath()
     {
         var dataBundles = DataLogger.Instance.SimData;
-        List<PathPrediction.ShipMeasurementData> measurements = null;
+        List<VesselMeasurementData> measurements = null;
 
-        List<PathPrediction.ShipMeasurementData> allData = null;
+        List<VesselMeasurementData> allData = null;
         foreach (var s in dataBundles)
         {
             measurements = ConvertDataLogToShipMeasurement(s.Value);
@@ -32,12 +32,18 @@ public class TestRunner : MonoBehaviour
         windowGraph.DisplayShipMesurementData(prediction);
     }
 
-    private List<PathPrediction.ShipMeasurementData> ConvertDataLogToShipMeasurement(List<BaseVessel.DataBundle> dataList, float percent = 0.5f)
+    [ContextMenu("Collision Simulation")]
+    public void CollisionSimulation()
     {
-        var measurements = new List<PathPrediction.ShipMeasurementData>();
+
+    }
+
+    private List<VesselMeasurementData> ConvertDataLogToShipMeasurement(List<BaseVessel.DataBundle> dataList, float percent = 0.5f)
+    {
+        var measurements = new List<VesselMeasurementData>();
         for(int i = 0; i < dataList.Count * percent; i++)
         {
-            measurements.Add(new PathPrediction.ShipMeasurementData(dataList[i].timeStamp, new Vector3(dataList[i].eta.east, -dataList[i].eta.down, dataList[i].eta.north)));
+            measurements.Add(new VesselMeasurementData(dataList[i].timeStamp, new Vector3(dataList[i].eta.east, -dataList[i].eta.down, dataList[i].eta.north)));
         }
         return measurements;
     }

@@ -61,7 +61,7 @@ public class WindowGraph : MonoBehaviour
 
     }
 
-    public void DisplayShipMesurementData(List<PathPrediction.ShipMeasurementData> shipData)
+    public void DisplayShipMesurementData(List<VesselMeasurementData> shipData)
     {
         GameObject parentObject = new GameObject();
         parentObject.AddComponent<RectTransform>();

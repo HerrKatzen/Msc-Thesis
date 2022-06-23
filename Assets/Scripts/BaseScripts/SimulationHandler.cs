@@ -6,8 +6,6 @@ using UnityEngine;
 public class SimulationHandler : MonoBehaviour
 {
     [SerializeField]
-    private Enviroment enviroment;
-    [SerializeField]
     private List<BaseVessel> vessels;
     /// <summary>
     /// The step time of the simulation: the lower the more accurate but at the cost of more calcualtions. Given in seconds
@@ -20,20 +18,30 @@ public class SimulationHandler : MonoBehaviour
     [SerializeField]
     private float timeToSimulate = 120f;
 
-    private void Start()
-    {
-        StartSimulation();
-    }
+    private Enviroment enviroment;
 
-    private void StartSimulation()
+    public void SetupSimulation(List<BaseVessel> allVessels, float _stepTime, float _timeToSimulate, Enviroment _enviroment)
     {
+        vessels = allVessels;
+        simulationTime = _stepTime;
+        timeToSimulate = _timeToSimulate;
+        enviroment = _enviroment;
         DataLogger.Instance.SetStepTime(simulationTime);
         foreach (var vessel in vessels)
         {
             vessel.Init(vessel.GetComponent<StartPoint>(), enviroment);
             DataLogger.Instance.AddVesselInitData(vessel.vesselName, vessel.GetComponent<StartPoint>().NEWayPoints);
         }
+    }
 
+    public async Task RunSimulation()
+    {
+        foreach (var vessel in vessels)
+        {
+            DataLogger.Instance.ClearVesselData(vessel.vesselName);
+        }
+        int count = 0;
+        Debug.Log(Time.time);
         for (float step = simulationTime; step < timeToSimulate; step += simulationTime)
         {
             foreach (var vessel in vessels)
@@ -43,7 +51,26 @@ public class SimulationHandler : MonoBehaviour
                 vessel.UpdateSimulation(controlData.u_control, controlData.prop_speed, simulationTime);
                 DataLogger.Instance.LogVesselData(vessel.vesselName, new BaseVessel.DataBundle(vessel.eta, vessel.linSpeed, vessel.torSpeed, vessel.rudAngle, controlData.u_control, step));
             }
-            //yield return delay;
+            count++;
+            if(count % 100 == 0)
+            {
+                await Task.Yield();
+            }
+        }
+        DataLogger.Instance.DebugLogData();
+        Debug.Log(Time.time);
+    }
+
+    public void SimulateSingleVessel(BaseVessel vessel)
+    {
+        DataLogger.Instance.ClearVesselData(vessel.vesselName);
+
+        for (float step = simulationTime; step < timeToSimulate; step += simulationTime)
+        {
+            vessel.UpdateWayoints();
+            var controlData = vessel.AutoPilotStep(simulationTime);
+            vessel.UpdateSimulation(controlData.u_control, controlData.prop_speed, simulationTime);
+            DataLogger.Instance.LogVesselData(vessel.vesselName, new BaseVessel.DataBundle(vessel.eta, vessel.linSpeed, vessel.torSpeed, vessel.rudAngle, controlData.u_control, step));
         }
         DataLogger.Instance.DebugLogData();
     }

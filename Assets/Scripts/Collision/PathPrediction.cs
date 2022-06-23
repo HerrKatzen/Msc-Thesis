@@ -33,29 +33,41 @@ public class PathPrediction : MonoBehaviour
     /// Must be between 0 and 1, where 0 will keep the current turn rate and 1 will put the vessel on a linear course immediately
     /// </summary>
     public float turnRateAcceleration = 0.1f;
+    /// <summary>
+    /// the linear acceleration of a vessel that has an accelerationDelta of 0. Accelerates the vesssel to a constant speed.
+    /// Must be between 0 and 1, where 0 will keep the current acceleration and 1 will put the vessel on a constant speed immediately
+    /// </summary>
+    public float linearAcceleration = 0.1f;
 
-    public List<ShipMeasurementData> filteredDataDebug = new List<ShipMeasurementData>();
+    public List<VesselMeasurementData> filteredDataDebug = new List<VesselMeasurementData>();
 
-    //TODO: calculate acceleration same way as turnrate acceleration
-    public List<ShipMeasurementData> GeneratePathPrediction(List<ShipMeasurementData> ShipData)
+    public List<VesselMeasurementData> GeneratePathPrediction(List<VesselMeasurementData> ShipData)
     {
-        List<ShipMeasurementData> filteredData = FilterData(ShipData);
+        List<VesselMeasurementData> filteredData = FilterData(ShipData);
         filteredDataDebug = filteredData;
         //we need at least 9 points for a prediction - the bezier will create 6 poinst from these, and the catmul rom 3 from the 6 - that we can further split
         //with 3 points we can mesure acceleration, turning rate and can predict a basic path.
         if (filteredData.Count < 9)
-            return null; // maybe check if its an obstacle in range?
+        {
+            //marking ship as obstacle - predictiong its average position as its poistion in the future
+            Vector3 averagePoint = Vector3.zero;
+            foreach (var point in filteredData)
+            {
+                averagePoint += point.EUN;
+            }
+            averagePoint /= (float)filteredData.Count;
+            return GenerateStaticPointPrediction(averagePoint, filteredData[filteredData.Count - 1].timeStamp);
+        }
 
-        List<ShipMeasurementData> catmulRomPoints = GenerateCatmulRomShipData(filteredData);
+        List<VesselMeasurementData> catmulRomPoints = GenerateCatmulRomShipData(filteredData);
         //Filtered and simplifed path generated, getting data
 
-        float headingChange = Vector3.SignedAngle(catmulRomPoints[0].EUN, catmulRomPoints[catmulRomPoints.Count - 1].EUN, Vector3.up);
-        float currentHeading = Vector3.SignedAngle(Vector3.forward, catmulRomPoints[catmulRomPoints.Count - 1].EUN, Vector3.up);
         float averageSpeed = 0f;
         Vector3 vectorizedDistance = catmulRomPoints[catmulRomPoints.Count - 1].EUN - catmulRomPoints[0].EUN;
         float distane = vectorizedDistance.magnitude;
         float timeDelta = catmulRomPoints[catmulRomPoints.Count - 1].timeStamp - catmulRomPoints[0].timeStamp;
         float averageTurnRate = 0f;
+        float averageAcceleration = 0f;
         List<float> turnRateDeltaList = new List<float>();
         for (int i = 0; i < catmulRomPoints.Count; i++)
         {
@@ -67,6 +79,8 @@ public class PathPrediction : MonoBehaviour
                     Vector3 currentHeadingVector = catmulRomPoints[i + 1].EUN - catmulRomPoints[i].EUN;
                     Vector3 nextHeadingVector = catmulRomPoints[i + 2].EUN - catmulRomPoints[i + 1].EUN;
                     averageTurnRate += Vector3.SignedAngle(currentHeadingVector, nextHeadingVector, Vector3.up) / (catmulRomPoints[i + 2].timeStamp - catmulRomPoints[i].timeStamp);
+                    averageAcceleration += (nextHeadingVector.magnitude / (catmulRomPoints[i + 2].timeStamp - catmulRomPoints[i + 1].timeStamp)) - 
+                                           (currentHeadingVector.magnitude / (catmulRomPoints[i + 1].timeStamp - catmulRomPoints[i].timeStamp));
                     if(i + 4 < catmulRomPoints.Count)
                     {
                         Vector3 secondHeadingVector = catmulRomPoints[i + 3].EUN - catmulRomPoints[i + 2].EUN;
@@ -86,13 +100,27 @@ public class PathPrediction : MonoBehaviour
         {
             if(distane < anchoredShipTravelTreshold)
             {
-                //TODO: ship didn't move far enough to be considered traveling. mark as stationary obstacle
+                //marking ship as obstacle - predictiong its average position as its poistion in the future
+                Vector3 averagePoint = Vector3.zero;
+                foreach (var point in catmulRomPoints)
+                {
+                    averagePoint += point.EUN;
+                }
+                averagePoint /= (float)catmulRomPoints.Count;
+                return GenerateStaticPointPrediction(averagePoint, catmulRomPoints[catmulRomPoints.Count - 1].timeStamp);
             }
         }
         //the ship considering its average speed and travel time traveled less than what it would take to do a 180 degree turn back, we consider it stationary
         else if (distane < timeDelta * averageSpeed / (Mathf.PI / 2f))
         {
-            //TODO: ship didn't move far enough to be considered traveling. mark as stationary obstacle
+            //marking ship as obstacle - predictiong its average position as its poistion in the future
+            Vector3 averagePoint = Vector3.zero;
+            foreach (var point in catmulRomPoints)
+            {
+                averagePoint += point.EUN;
+            }
+            averagePoint /= (float)catmulRomPoints.Count;
+            return GenerateStaticPointPrediction(averagePoint, catmulRomPoints[catmulRomPoints.Count - 1].timeStamp);
         }
 
         float medianTurnRateDelta = 0f;
@@ -110,12 +138,12 @@ public class PathPrediction : MonoBehaviour
         {
             medianTurnRateDelta = turnRateAcceleration;
         }
-        ShipMeasurementData lastPathPoint = catmulRomPoints[catmulRomPoints.Count - 1];
+        VesselMeasurementData lastPathPoint = catmulRomPoints[catmulRomPoints.Count - 1];
 
         //generating path - we will gradually sink turn rate delta to 0.
-        List<ShipMeasurementData> pathPrediction = new List<ShipMeasurementData>();
+        List<VesselMeasurementData> pathPrediction = new List<VesselMeasurementData>();
 
-        ShipMeasurementData firstPredictionPoint = catmulRomPoints[catmulRomPoints.Count - 2];
+        VesselMeasurementData firstPredictionPoint = catmulRomPoints[catmulRomPoints.Count - 2];
 
         //The last two datapoint from the path. Needed for prediction start
         pathPrediction.Add(firstPredictionPoint);
@@ -128,21 +156,23 @@ public class PathPrediction : MonoBehaviour
             Vector3 lastMovementDirectionNormalized = (pathPrediction[counter - 1].EUN - pathPrediction[counter - 2].EUN).normalized;
             float scaledTurnRate = averageTurnRate * (turnRateDeltaCurrent * timeBetweenPredictionValues);
             //if turn rate is smaller the 0.05 degrees a second we consider it 0
-            if (Mathf.Abs(scaledTurnRate) / timeBetweenPredictionValues < 0.05f) 
-            {
-                //scaling the vector
-                Vector3 predictedMovement = lastMovementDirectionNormalized * (averageSpeed / timeBetweenPredictionValues);
-                pathPrediction.Add(new ShipMeasurementData(lastPathPoint.timeStamp + f, pathPrediction[counter - 1].EUN + predictedMovement));
-            }
-            else
+            Vector3 predictedMovement = Vector3.zero;
+            if (Mathf.Abs(scaledTurnRate) / timeBetweenPredictionValues >= 0.05f)
             {
                 //turning the vector
-                Vector3 predictedMovement = Quaternion.AngleAxis(scaledTurnRate, Vector3.up) * lastMovementDirectionNormalized;
-                //scaling the vector
-                predictedMovement *= (averageSpeed / timeBetweenPredictionValues);
-                pathPrediction.Add(new ShipMeasurementData(lastPathPoint.timeStamp + f, pathPrediction[counter - 1].EUN + predictedMovement));
+                lastMovementDirectionNormalized = Quaternion.AngleAxis(scaledTurnRate, Vector3.up) * lastMovementDirectionNormalized;
+                turnRateDeltaCurrent *= 1f - medianTurnRateDelta;
             }
-            turnRateDeltaCurrent *= 1f - medianTurnRateDelta;
+            //if acceleration is smaller than 1cm/s^2 we consider it 0
+            if(averageAcceleration >= 0.01f)
+            {
+                averageSpeed += averageAcceleration;
+                averageAcceleration *= 1f - linearAcceleration;
+            }
+            //scaling the vector
+            predictedMovement = lastMovementDirectionNormalized * (averageSpeed / timeBetweenPredictionValues);
+            pathPrediction.Add(new VesselMeasurementData(lastPathPoint.timeStamp + f, pathPrediction[counter - 1].EUN + predictedMovement));
+
             counter++;
         }
         //remove the first two points, as they overlap with the original path
@@ -152,29 +182,39 @@ public class PathPrediction : MonoBehaviour
         return pathPrediction;
     }
 
-    private List<ShipMeasurementData> GenerateCatmulRomShipData(List<ShipMeasurementData> filteredData)
+    private List<VesselMeasurementData> GenerateStaticPointPrediction(Vector3 point, float startingTime)
     {
-        List<ShipMeasurementData> bezierPoints = new List<ShipMeasurementData>();
+        List<VesselMeasurementData> prediction = new List<VesselMeasurementData>();
+        for (float f = timeBetweenPredictionValues; f < predictionPathLenghtInTime; f += timeBetweenPredictionValues)
+        {
+            prediction.Add(new VesselMeasurementData(startingTime + f, point));
+        }
+        return prediction;
+    }
+
+    private List<VesselMeasurementData> GenerateCatmulRomShipData(List<VesselMeasurementData> filteredData)
+    {
+        List<VesselMeasurementData> bezierPoints = new List<VesselMeasurementData>();
         for (int i = 0; i < filteredData.Count - 3; i++)
         {
             Vector3 bezier = CubicBezierPoint(filteredData[i].EUN, filteredData[i + 1].EUN, filteredData[i + 2].EUN, filteredData[i + 3].EUN, 0.5f);
-            bezierPoints.Add(new ShipMeasurementData((filteredData[i].timeStamp + filteredData[i + 3].timeStamp) / 2f, bezier));
+            bezierPoints.Add(new VesselMeasurementData((filteredData[i].timeStamp + filteredData[i + 3].timeStamp) / 2f, bezier));
         }
 
-        List<ShipMeasurementData> catmulRomPoints = new List<ShipMeasurementData>();
+        List<VesselMeasurementData> catmulRomPoints = new List<VesselMeasurementData>();
         for (int i = 0; i < bezierPoints.Count - 3; i++)
         {
             //adding 2 points from each pair
             Vector3 catmulRomPoint1 = CatmullRomPoint(bezierPoints[i].EUN, bezierPoints[i + 1].EUN, bezierPoints[i + 2].EUN, bezierPoints[i + 3].EUN, 0.25f);
-            catmulRomPoints.Add(new ShipMeasurementData((bezierPoints[i + 1].timeStamp * 3f + bezierPoints[i + 2].timeStamp) / 4f, catmulRomPoint1));
+            catmulRomPoints.Add(new VesselMeasurementData((bezierPoints[i + 1].timeStamp * 3f + bezierPoints[i + 2].timeStamp) / 4f, catmulRomPoint1));
 
             Vector3 catmulRomPoint2 = CatmullRomPoint(bezierPoints[i].EUN, bezierPoints[i + 1].EUN, bezierPoints[i + 2].EUN, bezierPoints[i + 3].EUN, 0.75f);
-            catmulRomPoints.Add(new ShipMeasurementData((bezierPoints[i + 1].timeStamp + bezierPoints[i + 2].timeStamp * 3f) / 4f, catmulRomPoint2));
+            catmulRomPoints.Add(new VesselMeasurementData((bezierPoints[i + 1].timeStamp + bezierPoints[i + 2].timeStamp * 3f) / 4f, catmulRomPoint2));
         }
         return catmulRomPoints;
     }
 
-    private List<ShipMeasurementData> FilterData(List<ShipMeasurementData> ShipData)
+    private List<VesselMeasurementData> FilterData(List<VesselMeasurementData> ShipData)
     {
         //if the time of measurments are too small, keeping all the points is unnecessary - 0 default value will ignore this
         //we will also ignore points that are older than the time Treshold - assuming that the data is ordered by time, oldest data first
@@ -184,7 +224,7 @@ public class PathPrediction : MonoBehaviour
 
         //we are iterating the list from the end - when creating the filter we need to add objects to the start of it, thus we use LinkedList.
         //The returned value will be an in-order List of the last x mesurements that were in the range of the last [timeTreshold] seconds.
-        LinkedList<ShipMeasurementData> filteredData = new LinkedList<ShipMeasurementData>();
+        LinkedList<VesselMeasurementData> filteredData = new LinkedList<VesselMeasurementData>();
 
         if (minTime != 0f)
         {
@@ -201,7 +241,7 @@ public class PathPrediction : MonoBehaviour
                 {
                     if(lastTime - timeTreshold > ShipData[j].timeStamp)
                     {
-                        return new List<ShipMeasurementData>(filteredData);
+                        return new List<VesselMeasurementData>(filteredData);
                     }
                     if (ShipData[i].timeStamp + minTime < ShipData[j].timeStamp)
                     {
@@ -218,7 +258,7 @@ public class PathPrediction : MonoBehaviour
                         break;
                     }
                 }
-                ShipMeasurementData m = new ShipMeasurementData(timeTemp / vecCounter, posTemp / vecCounter);
+                VesselMeasurementData m = new VesselMeasurementData(timeTemp / vecCounter, posTemp / vecCounter);
                 filteredData.AddFirst(m);
                 i = j;
             }
@@ -233,7 +273,7 @@ public class PathPrediction : MonoBehaviour
                 i--;
             }
         }
-        return new List<ShipMeasurementData>(filteredData);
+        return new List<VesselMeasurementData>(filteredData);
     }
 
     /// <summary>
@@ -268,31 +308,31 @@ public class PathPrediction : MonoBehaviour
 
         return p;
     }
+}
 
-    public class ShipMeasurementData
+public class VesselMeasurementData
+{
+    /// <summary>
+    /// Time stamp in seconds
+    /// </summary>
+    public float timeStamp;
+    /// <summary>
+    /// East North Up: unity coordinates
+    /// </summary>
+    public Vector3 EUN;
+
+    public VesselMeasurementData() { }
+    public VesselMeasurementData(float _timeStamp, Vector3 _EUN)
     {
-        /// <summary>
-        /// Time stamp in seconds
-        /// </summary>
-        public float timeStamp;
-        /// <summary>
-        /// East North Up: unity coordinates
-        /// </summary>
-        public Vector3 EUN;
+        timeStamp = _timeStamp;
+        EUN = _EUN;
+    }
 
-        public ShipMeasurementData() { }
-        public ShipMeasurementData(float _timeStamp, Vector3 _EUN)
-        {
-            timeStamp = _timeStamp;
-            EUN = _EUN;
-        }
-
-        /// <summary>
-        /// Converts NED coordinates to Unity coordinates
-        /// </summary>
-        public static Vector3 ToUnityCoordinates(Vector3 NED)
-        {
-            return new Vector3(NED.y, -NED.z, NED.x);
-        }
+    /// <summary>
+    /// Converts NED coordinates to Unity coordinates
+    /// </summary>
+    public static Vector3 ToUnityCoordinates(Vector3 NED)
+    {
+        return new Vector3(NED.y, -NED.z, NED.x);
     }
 }

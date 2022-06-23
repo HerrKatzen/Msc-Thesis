@@ -9,15 +9,8 @@ public class Clarke83 : BaseVessel
     /// rudder aspect ratio
     /// </summary>
     public float lambda = 0.7f;
-    public float rudMax = 30f;
-    public float rudRateMax = 5f;
     public float propMax = 90f;
-    public float rudTimeDelta = 1f;
     public float speed = 0f;
-    /// <summary>
-    /// surge force (N) - pilot input
-    /// </summary>
-    public float tau_X = 100000f;
     /// <summary>
     /// approx radious of gyration in yaw (m)
     /// </summary>
@@ -51,12 +44,6 @@ public class Clarke83 : BaseVessel
     private List<Vector2> wayPoints;
     private Mat3x3.SystemMatrices systemMatrices;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        enviroment = GetComponent<Enviroment>();
-        //ComputeSystemMatrices(0f, lenght, beam, draft, blockCoef, R66, 0f, lenght);
-    }
     public override void Init(StartPoint startPoint, Enviroment _enviroment)
     {
         eta = new Eta(startPoint.eta);
@@ -64,6 +51,9 @@ public class Clarke83 : BaseVessel
         torSpeed = startPoint.torqueSpeed;
         wayPoints = startPoint.NEWayPoints;
         enviroment = _enviroment;
+        lenght = 50f;
+        beam = 7f;
+        draft = 5f;
 
         REF = 0f;
         speed = 0f;

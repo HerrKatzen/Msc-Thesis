@@ -2,20 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SimpleJSON;
+using System;
 
 [RequireComponent(typeof(StartPoint))]
 public abstract class BaseVessel : MonoBehaviour
 {
-    public string vesselName = "";
+    public string vesselName = Guid.NewGuid().ToString();
     public float lenght = 50f;
     public float draft = 5f;
     public float beam = 7f;
+    public float rudMax = 30f;
+    public float rudRateMax = 5f;
+    public float rudTimeDelta = 1f;
+    /// <summary>
+    /// surge force (N) - pilot input
+    /// </summary>
+    public float tau_X = 100000f;
     public float rpm;
     public float vCurr;
     public float betaVCurr;
     [HideInInspector]
     public float rudAngle = 0f;
-    public ControlSystem controlSystem = ControlSystem.StepInput;
+    public ControlSystem controlSystem = ControlSystem.HeadingAutopilot;
     protected Enviroment enviroment;
     [HideInInspector]
     public Eta eta;
