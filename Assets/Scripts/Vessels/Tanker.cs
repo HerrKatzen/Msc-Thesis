@@ -63,24 +63,24 @@ public class Tanker : BaseVessel
         }
 
         //forces and moment
-        float gT = ((1f / lenght) * Tuu * Mathf.Pow(u_r, 2f)) + (Tun * u_r * n) + (lenght * Tnn * Mathf.Abs(n) * n);
+        float gT = ((1f / length) * Tuu * Mathf.Pow(u_r, 2f)) + (Tun * u_r * n) + (length * Tnn * Mathf.Abs(n) * n);
         float c = Mathf.Sqrt(cun * u_r * n + cnn * Mathf.Pow(n, 2f));
-        float gX = (1f / lenght) * (Xuu * Mathf.Pow(u_r, 2f) + lenght * d11 * v_r * r + Xvv * Mathf.Pow(v_r, 2f)
+        float gX = (1f / length) * (Xuu * Mathf.Pow(u_r, 2f) + length * d11 * v_r * r + Xvv * Mathf.Pow(v_r, 2f)
                     + Xccdd * Mathf.Abs(c) * c * Mathf.Pow(rudAngle, 2f)
-                    + Xccbd * Mathf.Abs(c) * c * beta * rudAngle + lenght * gT * (1f - t)
+                    + Xccbd * Mathf.Abs(c) * c * beta * rudAngle + length * gT * (1f - t)
                     + Xuuz * Mathf.Pow(u_r, 2f) * z
-                    + lenght * Xvrz * v_r * r * z + Xvvzz * Mathf.Pow(v_r, 2f) * Mathf.Pow(z, 2f));
-        float gY = (1f / lenght) * (Yuv * u_r * v_r + Yvv * Mathf.Abs(v_r) * v_r
-                    + Yccd * Mathf.Abs(c) * c * rudAngle + lenght * d22 * u_r * r
+                    + length * Xvrz * v_r * r * z + Xvvzz * Mathf.Pow(v_r, 2f) * Mathf.Pow(z, 2f));
+        float gY = (1f / length) * (Yuv * u_r * v_r + Yvv * Mathf.Abs(v_r) * v_r
+                    + Yccd * Mathf.Abs(c) * c * rudAngle + length * d22 * u_r * r
                     + Yccbbd * Mathf.Abs(c) * c * Mathf.Abs(beta) * beta * Mathf.Abs(rudAngle)
-                    + YT * gT * lenght + lenght * Yurz * u_r * r * z + Yuvz_mod * u_r * v_r * z
+                    + YT * gT * length + length * Yurz * u_r * r * z + Yuvz_mod * u_r * v_r * z
                     + Yvvz * Mathf.Abs(v_r) * v_r * z
                     + Yccbbdz * Mathf.Abs(c) * c * Mathf.Abs(beta) * beta * Mathf.Abs(rudAngle) * z);
-        float gLN = Nuv * u_r * v_r + lenght * Nvr * Mathf.Abs(v_r) * r
-                    + Nccd * Mathf.Abs(c) * c * rudAngle + lenght * d33 * u_r * r
+        float gLN = Nuv * u_r * v_r + length * Nvr * Mathf.Abs(v_r) * r
+                    + Nccd * Mathf.Abs(c) * c * rudAngle + length * d33 * u_r * r
                     + Nccbbd * Mathf.Abs(c) * c * Mathf.Abs(beta) * beta * Mathf.Abs(rudAngle)
-                    + lenght * NT * gT + lenght * Nurz * u_r * r * z
-                    + Nuvz * u_r * v_r * z + lenght * Nvrz * Mathf.Abs(v_r) * r * z
+                    + length * NT * gT + length * Nurz * u_r * r * z
+                    + Nuvz * u_r * v_r * z + length * Nvrz * Mathf.Abs(v_r) * r * z
                     + Nccbbdz * Mathf.Abs(c) * c * Mathf.Abs(beta) * beta * Mathf.Abs(rudAngle) * z;
 
         //shallow water effects
@@ -91,7 +91,7 @@ public class Tanker : BaseVessel
         //Dimensional state derivatives
 
         Vector3 linSpeedDot = new Vector3(gX / m11_mod, gY / m22_mod, 0f);
-        Vector3 torSpeedDot = new Vector3(0f, 0f, gLN / (Mathf.Pow(lenght, 2f) * m33_mod));
+        Vector3 torSpeedDot = new Vector3(0f, 0f, gLN / (Mathf.Pow(length, 2f) * m33_mod));
 
         //rudder angle saturation
         if (Mathf.Abs(rudAngle) >= rudMax * Mathf.PI / 180f)

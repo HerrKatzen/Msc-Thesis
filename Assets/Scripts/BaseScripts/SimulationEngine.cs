@@ -91,12 +91,52 @@ public class SimulationEngine : MonoBehaviour
             radar = go.AddComponent<Radar>();
             collisionPreditor = go.AddComponent<CollisionPrediction>();
             await Task.Yield();
-            collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.lenght);
+            collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length);
             radar.InitRadar(ownVesselName, radarScanDistance, allVesselGameobjects);
-            collisionPreditor.GenerateExclusionZone(go, ownVesselBase.lenght);
+            collisionPreditor.GenerateExclusionZone(go, ownVesselBase.length);
         }
 
         if(DataLogger.Instance.SimData.TryGetValue(ownVesselName, out ownData))
+        {
+            dataPlayer.StartAnimation();
+        }
+    }
+
+    public async void StartSimulationFromSetup(List<VesselData.VesselDataPackage> setupData, float _stepTime, float timeToSimulate, string _ownVesselName)
+    {
+        ownVesselName = _ownVesselName;
+        foreach (var sd in setupData)
+        {
+            if(sd.vessel.vesselName.Equals(ownVesselName))
+            {
+                ownVesselBase = sd.vessel;
+                break;
+            }
+        }
+        //generate all paths
+        simHandler.SetupSimulation(setupData, _stepTime, timeToSimulate, enviroment);
+        await simHandler.RunSimulation();
+        await Task.Yield();
+
+        allVesselGameobjects = await dataPlayer.SetupDataReplayAsync();
+        if (allVesselGameobjects.TryGetValue(ownVesselName, out GameObject go))
+        {
+            radar = go.AddComponent<Radar>();
+            collisionPreditor = go.AddComponent<CollisionPrediction>();
+            await Task.Yield();
+            await Task.Yield();
+            collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length);
+            radar.InitRadar(ownVesselName, radarScanDistance, allVesselGameobjects);
+            collisionPreditor.GenerateExclusionZone(go, ownVesselBase.length);
+
+            Camera.main.transform.parent = go.transform;
+            Camera.main.transform.localScale = Vector3.one;
+            Camera.main.transform.localPosition = new Vector3(0f, 8f, -3f);
+            Camera.main.transform.localRotation = Quaternion.identity;
+            Camera.main.transform.RotateAround(Camera.main.transform.position, Camera.main.transform.right, 30f);
+        }
+
+        if (DataLogger.Instance.SimData.TryGetValue(ownVesselName, out ownData))
         {
             dataPlayer.StartAnimation();
         }

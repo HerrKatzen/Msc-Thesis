@@ -84,7 +84,7 @@ RectTransform:
   m_Children:
   - {fileID: 7385587837339333995}
   m_Father: {fileID: 4761819857805926525}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -172,7 +172,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5861369305443665921}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6707869964559182587}
+        m_TargetAssemblyTypeName: WaypointUI, Assembly-CSharp
+        m_MethodName: MoveWaypointUP
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!1 &1352162336387833315
 GameObject:
   m_ObjectHideFlags: 0
@@ -205,7 +217,7 @@ RectTransform:
   m_Children:
   - {fileID: 262278732769343952}
   m_Father: {fileID: 4761819857805926525}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -293,7 +305,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5982355854828689355}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6707869964559182587}
+        m_TargetAssemblyTypeName: WaypointUI, Assembly-CSharp
+        m_MethodName: MoveWaypointUP
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1627958387729024955
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,8 +1117,8 @@ RectTransform:
   - {fileID: 6501721413578113795}
   - {fileID: 309656641337768562}
   - {fileID: 6197098082809996764}
-  - {fileID: 5364816083982282361}
   - {fileID: 2572856678125149682}
+  - {fileID: 5364816083982282361}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1173,8 +1197,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 414432d2b8a7b144fb37e9ed2db29b9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nedN: {fileID: 0}
-  nedE: {fileID: 0}
+  nedN: {fileID: 5846460596721208150}
+  nedE: {fileID: 7182993242827559992}
 --- !u!1 &5670357771769007588
 GameObject:
   m_ObjectHideFlags: 0
@@ -1738,7 +1762,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 8187039720507385045}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6707869964559182587}
+        m_TargetAssemblyTypeName: WaypointUI, Assembly-CSharp
+        m_MethodName: Delete
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7830849769826050263
 GameObject:
   m_ObjectHideFlags: 0

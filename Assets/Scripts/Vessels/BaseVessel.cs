@@ -7,7 +7,7 @@ using System;
 public abstract class BaseVessel : MonoBehaviour
 {
     public string vesselName = Guid.NewGuid().ToString();
-    public float lenght = 50f;
+    public float length = 50f;
     public float draft = 5f;
     public float beam = 7f;
     public float rudMax = 30f;

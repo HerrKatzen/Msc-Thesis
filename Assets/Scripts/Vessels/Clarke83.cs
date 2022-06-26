@@ -51,14 +51,14 @@ public class Clarke83 : BaseVessel
         torSpeed = startPoint.torqueSpeed;
         wayPoints = startPoint.NEWayPoints;
         enviroment = _enviroment;
-        lenght = 50f;
+        length = 50f;
         beam = 7f;
         draft = 5f;
 
         REF = 0f;
         speed = 0f;
         betaVCurr = 0f;
-        R66 = lenght > 100f ? 0.27f * lenght : 0.25f * lenght;
+        R66 = length > 100f ? 0.27f * length : 0.25f * length;
         //linSpeed = new Vector3(2f, 0f, 0f);
         //torSpeed = Vector3.zero;
 
@@ -72,7 +72,7 @@ public class Clarke83 : BaseVessel
         
         //controller parameters m, d, k
         float U0 = 3f; // cruise speed
-        systemMatrices = ComputeSystemMatrices(U0, lenght, beam, draft, blockCoef, R66, 0f, lenght);
+        systemMatrices = ComputeSystemMatrices(U0, length, beam, draft, blockCoef, R66, 0f, length);
 
         m_PID = systemMatrices.M[2, 2];
         d_PID = systemMatrices.N[2, 2];
@@ -84,8 +84,8 @@ public class Clarke83 : BaseVessel
         CN = 6.13f * lambda / (lambda + 2.25f); //normal coeff
         t_R = 1f - (0.28f * blockCoef) -0.55f;
         a_H = 0.4f;
-        x_R = -0.45f * lenght;
-        x_H = -1f * lenght;
+        x_R = -0.45f * length;
+        x_H = -1f * length;
 
         Nd = -0.25f * (x_R + a_H * x_H) * enviroment.rho * U0 * U0 * AR * CN;
     }
@@ -95,7 +95,7 @@ public class Clarke83 : BaseVessel
         if (wayPoints == null) return;
 
         var NE = new Vector2(eta.north, eta.east);
-        var command = LosPathFollower.GetPathCommand(NE,wayPoints, waypointIndex, lenght);
+        var command = LosPathFollower.GetPathCommand(NE,wayPoints, waypointIndex, length);
         waypointIndex = command.waypointIndex;
         REF = command.headingCommand;
     }
@@ -132,10 +132,10 @@ public class Clarke83 : BaseVessel
         float tau6 = -Nd * Mathf.Sin(2f * delta_R);
         Vector3 tau = new Vector3(tau1, tau2, tau6);
         //linear maneuvering model
-        float T_surge = lenght;
+        float T_surge = length;
         float xg = 0f;
         //3-DOF ship model
-        systemMatrices = ComputeSystemMatrices(relSpeed, lenght, beam, draft, blockCoef, R66, xg, T_surge);
+        systemMatrices = ComputeSystemMatrices(relSpeed, length, beam, draft, blockCoef, R66, xg, T_surge);
         float[,] Minv = Mat3x3.MultInverse(systemMatrices.M);
         Vector3 nu3 = new Vector3(relLinSpeed.x, relLinSpeed.y, relTorSpeed.z);
         Vector3 nu3_dot = Vector3.zero;
