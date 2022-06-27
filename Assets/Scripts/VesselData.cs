@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using SimpleJSON;
+using System;
 
 public class VesselData : MonoBehaviour
 {
     [SerializeField]
     private VesselDataUI vesselDataUI;
-    [SerializeField]
-    private StartPoint startPoint;
-    private VesselDataPackage dataPackage = null;
+    private VesselMetaDataPackage dataPackage = null;
     private IDataHandler dataHandler;
-    public VesselDataPackage DataPackage { 
+    public VesselMetaDataPackage DataPackage { 
         get 
         {
             if (dataPackage == null)
             {
-                dataPackage = new VesselDataPackage(startPoint);
+                dataPackage = new VesselMetaDataPackage();
             }
             return dataPackage;
         }
-        private set { dataPackage = value; } 
+        set { dataPackage = value; } 
     }
 
     public void SetDataHandler(IDataHandler _dataHandler)
@@ -43,11 +42,11 @@ public class VesselData : MonoBehaviour
 
     public void SetVesselDataUI()
     {
-        vesselDataUI.vesselName.text = dataPackage.vessel.vesselName;
-        vesselDataUI.nedN.text = dataPackage.startPoint.eta.north.ToString();
-        vesselDataUI.nedE.text = dataPackage.startPoint.eta.east.ToString();
-        vesselDataUI.nedD.text = dataPackage.startPoint.eta.down.ToString();
-        vesselDataUI.numWP.text = dataPackage.startPoint.NEWayPoints.Count.ToString();
+        vesselDataUI.vesselName.text = dataPackage.vesselName;
+        vesselDataUI.nedN.text = dataPackage.eta.north.ToString();
+        vesselDataUI.nedE.text = dataPackage.eta.east.ToString();
+        vesselDataUI.nedD.text = dataPackage.eta.down.ToString();
+        vesselDataUI.numWP.text = dataPackage.NEWayPoints.Count.ToString();
     }
 
     public void SetEditMode()
@@ -71,49 +70,99 @@ public class VesselData : MonoBehaviour
     }
 
     [System.Serializable]
-    public class VesselDataPackage
+    public class VesselMetaDataPackage
     {
-        public BaseVessel vessel;
-        public StartPoint startPoint;
+        public string vesselType;
+        public string vesselName;
+        public float length;
+        public float beam;
+        public float draft;
+        public float rudMax;
+        public float rudRateMax;
+        public float tau_X;
+        public BaseVessel.Eta eta = new BaseVessel.Eta();
+        public Vector3 linearSpeed = new Vector3();
+        public Vector3 torqueSpeed = new Vector3();
+        public BaseVessel.ControlSystem controlSystem;
+        public List<Vector2> NEWayPoints = new List<Vector2>();
 
-        public VesselDataPackage() { }
-        public VesselDataPackage(StartPoint sp)
+        public VesselMetaDataPackage() { }
+
+        public VesselMetaDataPackage(JSONNode root) 
         {
-            startPoint = sp;
+            vesselName = root["vesselName"];
+            vesselType = root["type"];
+            length = root["length"];
+            beam = root["beam"];
+            draft = root["draft"];
+            rudMax = root["rudMax"];
+            rudRateMax = root["rudRateMax"];
+            tau_X = root["surgeForce"];
+
+            JSONNode startPos = root["startPoint"];
+            eta.north = startPos["x"];
+            eta.east = startPos["y"];
+            eta.down = startPos["z"];
+            eta.yaw = root["heading"];
+
+            JSONNode linSpeed = root["startLinSpeed"];
+            linearSpeed.x = linSpeed["x"];
+            linearSpeed.y = linSpeed["y"];
+            linearSpeed.z = linSpeed["z"];
+
+            JSONNode torSpeed = root["startTorqSpeed"];
+            torqueSpeed.x = torSpeed["x"];
+            torqueSpeed.y = torSpeed["y"];
+            torqueSpeed.z = torSpeed["z"];
+
+            controlSystem = (BaseVessel.ControlSystem) Enum.Parse(typeof(BaseVessel.ControlSystem), root["controller"], true);
+
+            var waypoints = root["waypoints"];
+            foreach (var p in waypoints.Children)
+            {
+                Vector2 v = new Vector2();
+                v.x = p["x"];
+                v.y = p["y"];
+                NEWayPoints.Add(v);
+            }
         }
 
         public JSONNode ToJsonNode()
         {
             JSONNode root = new JSONObject();
-            root["vesselName"] = vessel.vesselName;
-            root["length"] = vessel.length;
-            root["beam"] = vessel.beam;
-            root["rudMax"] = vessel.rudMax;
-            root["rudRateMax"] = vessel.rudRateMax;
-            root["surgeForce"] = vessel.tau_X;
+            root["vesselName"] = vesselName;
+            root["type"] = vesselType;
+            root["length"] = length;
+            root["beam"] = beam;
+            root["draft"] = draft;
+            root["rudMax"] = rudMax;
+            root["rudRateMax"] = rudRateMax;
+            root["surgeForce"] = tau_X;
 
             JSONNode startPos = new JSONObject();
-            startPos["x"] = startPoint.eta.north;
-            startPos["y"] = startPoint.eta.east;
-            startPos["z"] = startPoint.eta.down;
+            startPos["x"] = eta.north;
+            startPos["y"] = eta.east;
+            startPos["z"] = eta.down;
             root["startPoint"] = startPos;
-            root["heading"] = startPoint.eta.yaw;
+            root["heading"] = eta.yaw;
 
             JSONNode linSpeed = new JSONObject();
-            linSpeed["x"] = startPoint.linearSpeed.x;
-            linSpeed["y"] = startPoint.linearSpeed.y;
-            linSpeed["z"] = startPoint.linearSpeed.z;
+            linSpeed["x"] = linearSpeed.x;
+            linSpeed["y"] = linearSpeed.y;
+            linSpeed["z"] = linearSpeed.z;
             root["startLinSpeed"] = linSpeed;
 
             JSONNode torSpeed = new JSONObject();
-            torSpeed["x"] = startPoint.torqueSpeed.x;
-            torSpeed["y"] = startPoint.torqueSpeed.y;
-            torSpeed["z"] = startPoint.torqueSpeed.z;
+            torSpeed["x"] = torqueSpeed.x;
+            torSpeed["y"] = torqueSpeed.y;
+            torSpeed["z"] = torqueSpeed.z;
             root["startTorqSpeed"] = torSpeed;
+
+            root["controller"] = controlSystem.ToString();
 
             var waypoints = new JSONArray();
             root["waypoints"] = waypoints;
-            foreach (var p in startPoint.NEWayPoints)
+            foreach (var p in NEWayPoints)
             {
                 JSONNode vector2Node = new JSONObject();
                 vector2Node["x"] = p.x;

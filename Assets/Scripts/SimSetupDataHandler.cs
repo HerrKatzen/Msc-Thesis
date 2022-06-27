@@ -27,8 +27,6 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     private GameObject waypointPrefab;
     [SerializeField]
     private VesselDataUI ui;
-    [SerializeField]
-    private List<BaseVessel> vesselTypes;
 
     public UnityEvent OnEditClickedEvent;
 
@@ -58,47 +56,44 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     {
         if (activeVesselData == null) return;
 
-        var vessel = activeVesselData.DataPackage.vessel;
-        if (vessel == null)
+        for(int i = ui.ownVesselNameSelector.options.Count - 1; i >= 0; i--)
         {
-            foreach (var bv in vesselTypes)
+            if (ui.ownVesselNameSelector.options[i].text.Equals(activeVesselData.name))
             {
-                if(bv.name.Equals(ui.vesselType.text))
-                {
-                    vessel = (BaseVessel)activeVesselData.gameObject.AddComponent(bv.GetType());
-                }
+                ui.ownVesselNameSelector.options.RemoveAt(i);
             }
-            activeVesselData.DataPackage.vessel = vessel;
         }
-        vessel.vesselName = ui.vesselName.text.Length > 0 ? ui.vesselName.text : Guid.NewGuid().ToString();
-        vessel.length = ui.lenght.text.Length > 0 ? float.Parse(ui.lenght.text) : float.Parse(ui.lenght.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        vessel.beam = ui.beam.text.Length > 0 ? float.Parse(ui.beam.text) : float.Parse(ui.beam.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        vessel.draft = ui.draft.text.Length > 0 ? float.Parse(ui.draft.text) : float.Parse(ui.draft.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        vessel.rudMax = ui.rudAngMax.text.Length > 0 ? float.Parse(ui.rudAngMax.text) : float.Parse(ui.rudAngMax.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        vessel.rudRateMax = ui.rudAngRateMax.text.Length > 0 ? float.Parse(ui.rudAngRateMax.text) : float.Parse(ui.rudAngRateMax.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        vessel.tau_X = ui.surgeForce.text.Length > 0 ? float.Parse(ui.surgeForce.text) : float.Parse(ui.surgeForce.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        ui.ownVesselNameSelector.RefreshShownValue();
 
-        var startPoint = activeVesselData.DataPackage.startPoint;
-        if (startPoint.eta == null) startPoint.eta = new BaseVessel.Eta();
+        var dp = activeVesselData.DataPackage;
+        dp.vesselType = ui.vesselType.options[ui.vesselType.value].text;
+        dp.vesselName = ui.vesselName.text.Length > 0 ? ui.vesselName.text : Guid.NewGuid().ToString();
+        dp.length = ui.lenght.text.Length > 0 ? float.Parse(ui.lenght.text) : float.Parse(ui.lenght.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.beam = ui.beam.text.Length > 0 ? float.Parse(ui.beam.text) : float.Parse(ui.beam.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.draft = ui.draft.text.Length > 0 ? float.Parse(ui.draft.text) : float.Parse(ui.draft.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.rudMax = ui.rudAngMax.text.Length > 0 ? float.Parse(ui.rudAngMax.text) : float.Parse(ui.rudAngMax.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.rudRateMax = ui.rudAngRateMax.text.Length > 0 ? float.Parse(ui.rudAngRateMax.text) : float.Parse(ui.rudAngRateMax.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.tau_X = ui.surgeForce.text.Length > 0 ? float.Parse(ui.surgeForce.text) : float.Parse(ui.surgeForce.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
 
-        startPoint.eta.north = ui.etaN.text.Length > 0 ? float.Parse(ui.etaN.text) : float.Parse(ui.etaN.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        startPoint.eta.east = ui.etaE.text.Length > 0 ? float.Parse(ui.etaE.text) : float.Parse(ui.etaE.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        startPoint.eta.down = ui.etaD.text.Length > 0 ? float.Parse(ui.etaD.text) : float.Parse(ui.etaD.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        startPoint.eta.yaw = ui.heading.text.Length > 0 ? float.Parse(ui.heading.text) * Mathf.Deg2Rad : float.Parse(ui.heading.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text) * Mathf.Deg2Rad; //heading in radian
-        startPoint.linearSpeed = new Vector3(
+        dp.eta.north = ui.etaN.text.Length > 0 ? float.Parse(ui.etaN.text) : float.Parse(ui.etaN.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.eta.east = ui.etaE.text.Length > 0 ? float.Parse(ui.etaE.text) : float.Parse(ui.etaE.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.eta.down = ui.etaD.text.Length > 0 ? float.Parse(ui.etaD.text) : float.Parse(ui.etaD.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.eta.yaw = ui.heading.text.Length > 0 ? float.Parse(ui.heading.text) * Mathf.Deg2Rad : float.Parse(ui.heading.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text) * Mathf.Deg2Rad; //heading in radian
+        dp.linearSpeed = new Vector3(
             ui.speedN.text.Length > 0 ? float.Parse(ui.speedN.text) : float.Parse(ui.speedN.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedE.text.Length > 0 ? float.Parse(ui.speedE.text) : float.Parse(ui.speedE.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedD.text.Length > 0 ? float.Parse(ui.speedD.text) : float.Parse(ui.speedD.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text));
-        startPoint.torqueSpeed = new Vector3(
+        dp.torqueSpeed = new Vector3(
             ui.speedR.text.Length > 0 ? float.Parse(ui.speedR.text) : float.Parse(ui.speedR.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedP.text.Length > 0 ? float.Parse(ui.speedP.text) : float.Parse(ui.speedP.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedY.text.Length > 0 ? float.Parse(ui.speedY.text) : float.Parse(ui.speedY.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text));
+        dp.controlSystem = (BaseVessel.ControlSystem)Enum.Parse(typeof(BaseVessel.ControlSystem), ui.controller.options[ui.controller.value].text, true);
 
-        var NEwaypoints = activeVesselData.DataPackage.startPoint.NEWayPoints;
+        var NEwaypoints = activeVesselData.DataPackage.NEWayPoints;
         if (NEwaypoints == null)
         {
             NEwaypoints = new List<Vector2>();
-            activeVesselData.DataPackage.startPoint.NEWayPoints = NEwaypoints;
+            activeVesselData.DataPackage.NEWayPoints = NEwaypoints;
         }
         NEwaypoints.Clear();
         for (int i = 0; i < waypointsParent.childCount; i++)
@@ -109,7 +104,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             NEwaypoints.Add(new Vector2(nedN, nedE));
         }
 
-        ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = vessel.vesselName });
+        ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
         if(ui.ownVesselNameSelector.options.Count == 1)
         {
             ui.ownVesselNameSelector.value = 0;
@@ -129,8 +124,44 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         SaveDataChanges();
         activeVesselData = null;
         setupMenu.SetMenuNONE();
+        float stepTime = float.Parse(ui.stepTime.text.Length > 0 ? ui.stepTime.text : ui.stepTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        float simTime = float.Parse(ui.simTime.text.Length > 0 ? ui.simTime.text : ui.simTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        string ownVesselName = ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text;
 
-        vesselDataSerializer.SerializeAndSaveVesselData(vessels);
+        vesselDataSerializer.SerializeAndSaveVesselData(vessels, stepTime, simTime, ownVesselName);
+    }
+
+    public void LoadFileData(List<VesselData.VesselMetaDataPackage> dataPackages, float _stepTime, float _simTime, string _ownVesselName)
+    {
+        ResetUI();
+        setupMenu.SetMenuNONE();
+        ui.ownVesselNameSelector.options.Clear();   
+        activeVesselData = null;
+        vessels = new List<VesselData>();
+
+        for(int i = vesselsParent.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(vesselsParent.GetChild(i));
+        }
+        for (int i = waypointsParent.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(waypointsParent.GetChild(i));
+        }
+
+        foreach (var dp in dataPackages)
+        {
+            var instance = Instantiate(vesselDataPrefab, vesselsParent);
+            var VesselData = instance.GetComponent<VesselData>();
+            vessels.Add(VesselData);
+            VesselData.SetDataHandler(this);
+            VesselData.DataPackage = dp;
+            ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
+            if (dp.vesselName.Equals(_ownVesselName)) ui.ownVesselNameSelector.value = ui.ownVesselNameSelector.options.Count - 1;
+
+            ui.stepTime.text = _stepTime.ToString();
+            ui.simTime.text = _simTime.ToString();
+        }
+        ui.ownVesselNameSelector.RefreshShownValue();
     }
 
     private void ResetUI()
@@ -159,7 +190,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         vessels.Remove(vesselData);
         for (int i = 0; i < ui.ownVesselNameSelector.options.Count; i++)
         {
-            if(ui.ownVesselNameSelector.options[i].text.Equals(vesselData.DataPackage.vessel.vesselName))
+            if(ui.ownVesselNameSelector.options[i].text.Equals(vesselData.DataPackage.vesselName))
             {
                 ui.ownVesselNameSelector.options.RemoveAt(i);
                 if(ui.ownVesselNameSelector.options.Count > 0)
@@ -184,7 +215,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     {
         if(activeVesselData != null) activeVesselData.EditDone();
         activeVesselData = vesselData;
-        var waypoints = activeVesselData.DataPackage.startPoint.NEWayPoints;
+        var waypoints = activeVesselData.DataPackage.NEWayPoints;
         if(waypoints != null)
         {
             foreach (var wp in waypoints)
@@ -193,6 +224,39 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
                 var wpUI = instance.GetComponent<WaypointUI>();
                 wpUI.nedN.text = wp.x.ToString();
                 wpUI.nedE.text = wp.y.ToString();
+            }
+        }
+
+        ui.vesselName.text = vesselData.DataPackage.vesselName;
+        ui.beam.text = vesselData.DataPackage.beam.ToString();
+        ui.draft.text = vesselData.DataPackage.draft.ToString();
+        ui.rudAngRateMax.text = vesselData.DataPackage.rudRateMax.ToString();
+        ui.rudAngMax.text = vesselData.DataPackage.rudMax.ToString();
+        ui.surgeForce.text = vesselData.DataPackage.tau_X.ToString();
+        ui.etaN.text = vesselData.DataPackage.eta.north.ToString();
+        ui.etaE.text = vesselData.DataPackage.eta.east.ToString();
+        ui.etaD.text = vesselData.DataPackage.eta.down.ToString();
+        ui.heading.text = (vesselData.DataPackage.eta.yaw * Mathf.Rad2Deg).ToString();
+        ui.speedN.text = vesselData.DataPackage.linearSpeed.x.ToString();
+        ui.speedE.text = vesselData.DataPackage.linearSpeed.y.ToString();
+        ui.speedD.text = vesselData.DataPackage.linearSpeed.z.ToString();
+        ui.speedR.text = vesselData.DataPackage.torqueSpeed.x.ToString();
+        ui.speedP.text = vesselData.DataPackage.torqueSpeed.y.ToString();
+        ui.speedY.text = vesselData.DataPackage.torqueSpeed.z.ToString();
+
+        for(int i = 0; i < ui.controller.options.Count; i++)
+        {
+            if(ui.controller.options[i].text.Equals(vesselData.DataPackage.controlSystem.ToString()))
+            {
+                ui.controller.value = i;
+            }
+        }
+
+        for (int i = 0; i < ui.vesselType.options.Count; i++)
+        {
+            if (ui.vesselType.options[i].text.Equals(vesselData.DataPackage.vesselType))
+            {
+                ui.vesselType.value = i;
             }
         }
         OnEditClickedEvent.Invoke();
@@ -208,18 +272,13 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     public void StartSimulation()
     {
         if (vessels.Count == 0) return;
-        List<VesselData.VesselDataPackage> dataPackageList = new List<VesselData.VesselDataPackage>();
-        foreach (var vd in vessels)
-        {
-            dataPackageList.Add(vd.DataPackage);
-        }
 
         float stepTime = float.Parse(ui.stepTime.text.Length > 0 ? ui.stepTime.text : ui.stepTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
         float simTime = float.Parse(ui.simTime.text.Length > 0 ? ui.simTime.text : ui.simTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
 
         mainCanvas.SetActive(false);
         
-        simEngine.StartSimulationFromSetup(dataPackageList, stepTime, simTime, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
+        simEngine.StartSimulationFromSetup(vessels, stepTime, simTime, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
     }
 
     [System.Serializable]
@@ -242,8 +301,9 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         public TMP_InputField speedR;
         public TMP_InputField speedP;
         public TMP_InputField speedY;
-        public TextMeshProUGUI vesselType;
+        public TMP_Dropdown vesselType;
         public TMP_Dropdown ownVesselNameSelector;
+        public TMP_Dropdown controller;
         public TMP_InputField simTime;
         public TMP_InputField stepTime;
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,6 +20,10 @@ public class SimulationEngine : MonoBehaviour
 
     [Tooltip("time between each path prediction run in seconds")]
     public float generatedPathUpdateTime = 5f;
+
+    [Tooltip("the list of vessel types. Should use a prefab with the types as children")]
+    [SerializeField]
+    private List<BaseVessel> vesselTypes;
 
     private SimulationHandler simHandler;
     private Enviroment enviroment;
@@ -102,19 +107,42 @@ public class SimulationEngine : MonoBehaviour
         }
     }
 
-    public async void StartSimulationFromSetup(List<VesselData.VesselDataPackage> setupData, float _stepTime, float timeToSimulate, string _ownVesselName)
+    public async void StartSimulationFromSetup(List<VesselData> setupData, float _stepTime, float timeToSimulate, string _ownVesselName)
     {
+        var baseVessels = new List<BaseVessel>();
         ownVesselName = _ownVesselName;
         foreach (var sd in setupData)
         {
-            if(sd.vessel.vesselName.Equals(ownVesselName))
+            foreach (var bv in vesselTypes)
             {
-                ownVesselBase = sd.vessel;
-                break;
+                if (bv.name.Equals(sd.DataPackage.vesselType))
+                {
+                    BaseVessel baseVessel = (BaseVessel)sd.gameObject.AddComponent(bv.GetType());
+                    baseVessel.length = sd.DataPackage.length;
+                    baseVessel.beam = sd.DataPackage.beam;
+                    baseVessel.draft = sd.DataPackage.draft;
+                    baseVessel.eta = new BaseVessel.Eta(sd.DataPackage.eta);
+                    baseVessel.vesselName = sd.DataPackage.vesselName;
+                    baseVessel.rudMax = sd.DataPackage.rudMax;
+                    baseVessel.rudRateMax = sd.DataPackage.rudRateMax;
+                    baseVessel.tau_X = sd.DataPackage.tau_X;
+
+                    if (sd.DataPackage.vesselName.Equals(ownVesselName))
+                    {
+                        ownVesselBase = baseVessel;
+                    }
+                    StartPoint startPoint = sd.gameObject.AddComponent<StartPoint>();
+                    startPoint.eta = new BaseVessel.Eta(sd.DataPackage.eta);
+                    startPoint.linearSpeed = sd.DataPackage.linearSpeed;
+                    startPoint.torqueSpeed = sd.DataPackage.torqueSpeed;
+                    startPoint.NEWayPoints = sd.DataPackage.NEWayPoints;
+
+                    baseVessels.Add(baseVessel);
+                }
             }
         }
         //generate all paths
-        simHandler.SetupSimulation(setupData, _stepTime, timeToSimulate, enviroment);
+        simHandler.SetupSimulation(baseVessels, _stepTime, timeToSimulate, enviroment);
         await simHandler.RunSimulation();
         await Task.Yield();
 

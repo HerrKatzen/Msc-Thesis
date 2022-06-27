@@ -34,24 +34,6 @@ public class SimulationHandler : MonoBehaviour
         }
     }
 
-    public void SetupSimulation(List<VesselData.VesselDataPackage> allVessels, float _stepTime, float _timeToSimulate, Enviroment _enviroment)
-    {
-        vessels = new List<BaseVessel>();
-        foreach (var v in allVessels)
-        {
-            vessels.Add(v.vessel);
-        }
-        simulationTime = _stepTime;
-        timeToSimulate = _timeToSimulate;
-        enviroment = _enviroment;
-        DataLogger.Instance.SetStepTime(simulationTime);
-        foreach (var vessel in allVessels)
-        {
-            vessel.vessel.Init(vessel.startPoint, enviroment);
-            DataLogger.Instance.AddVesselInitData(vessel.vessel.vesselName, vessel.startPoint.NEWayPoints);
-        }
-    }
-
     public async Task RunSimulation()
     {
         foreach (var vessel in vessels)

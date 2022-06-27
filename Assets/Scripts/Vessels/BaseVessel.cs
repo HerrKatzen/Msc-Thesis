@@ -157,6 +157,7 @@ public abstract class BaseVessel : MonoBehaviour
         LOSPathFollowing,
         DynamicPositioning,
         StepInput
+
     }
 
     [System.Serializable]
