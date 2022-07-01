@@ -2958,9 +2958,9 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: Heading Autopilot
+    - m_Text: HeadingAutopilot
       m_Image: {fileID: 0}
-    - m_Text: Step Input (server setup required)
+    - m_Text: StepInput
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

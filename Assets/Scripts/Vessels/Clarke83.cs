@@ -92,7 +92,7 @@ public class Clarke83 : BaseVessel
 
     public override void UpdateWayoints()
     {
-        if (wayPoints == null) return;
+        if (wayPoints == null || wayPoints.Count == 0) return;
 
         var NE = new Vector2(eta.north, eta.east);
         var command = LosPathFollower.GetPathCommand(NE,wayPoints, waypointIndex, length);

@@ -32,11 +32,11 @@ public class FileLoadData : MonoBehaviour
 
         if(result)
         {
-            loadButtonText.text = "File Load Failed";
+            loadButtonText.text = "File Loaded";
         }
         else
         {
-            loadButtonText.text = "File Loaded";
+            loadButtonText.text = "File Load Failed";
         }
         loadButton.interactable = false;
     }

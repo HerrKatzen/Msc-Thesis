@@ -45,6 +45,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         vessels.Add(VesselData);
         VesselData.SetDataHandler(this);
         VesselData.SetEditMode();
+        ResetUI();
     }
 
     public void AddNewWaypoint()
@@ -68,7 +69,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         var dp = activeVesselData.DataPackage;
         dp.vesselType = ui.vesselType.options[ui.vesselType.value].text;
         dp.vesselName = ui.vesselName.text.Length > 0 ? ui.vesselName.text : Guid.NewGuid().ToString();
-        dp.length = ui.lenght.text.Length > 0 ? float.Parse(ui.lenght.text) : float.Parse(ui.lenght.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        dp.length = ui.length.text.Length > 0 ? float.Parse(ui.length.text) : float.Parse(ui.length.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
         dp.beam = ui.beam.text.Length > 0 ? float.Parse(ui.beam.text) : float.Parse(ui.beam.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
         dp.draft = ui.draft.text.Length > 0 ? float.Parse(ui.draft.text) : float.Parse(ui.draft.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
         dp.rudMax = ui.rudAngMax.text.Length > 0 ? float.Parse(ui.rudAngMax.text) : float.Parse(ui.rudAngMax.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
@@ -168,7 +169,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     {
         ui.vesselName.text = "";
         ui.beam.text = "";
-        ui.lenght.text = "";
+        ui.length.text = "";
         ui.heading.text = "";
         ui.draft.text = "";
         ui.etaD.text = "";
@@ -228,6 +229,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         }
 
         ui.vesselName.text = vesselData.DataPackage.vesselName;
+        ui.length.text = vesselData.DataPackage.length.ToString();
         ui.beam.text = vesselData.DataPackage.beam.ToString();
         ui.draft.text = vesselData.DataPackage.draft.ToString();
         ui.rudAngRateMax.text = vesselData.DataPackage.rudRateMax.ToString();
@@ -285,7 +287,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     public class VesselDataUI
     {
         public TMP_InputField vesselName;
-        public TMP_InputField lenght;
+        public TMP_InputField length;
         public TMP_InputField beam;
         public TMP_InputField draft;
         public TMP_InputField rudAngMax;

@@ -2654,7 +2654,6 @@ GameObject:
   - component: {fileID: 4761819857805926524}
   - component: {fileID: 4761819857805926526}
   - component: {fileID: 8140558232756865925}
-  - component: {fileID: 4547660479520204969}
   m_Layer: 0
   m_Name: VesselListElementPrefab
   m_TagString: Untagged
@@ -2761,29 +2760,6 @@ MonoBehaviour:
     numWP: {fileID: 2313852613911460685}
     editModeOverlay: {fileID: 3090121146066043231}
     normalModeOverlay: {fileID: 5031776378315605128}
-  startPoint: {fileID: 4547660479520204969}
---- !u!114 &4547660479520204969
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4761819857805926522}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d151a3bab25108a4c921f53b486bc58f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  eta:
-    north: 0
-    east: 0
-    down: 0
-    roll: 0
-    pitch: 0
-    yaw: 0
-  linearSpeed: {x: 0, y: 0, z: 0}
-  torqueSpeed: {x: 0, y: 0, z: 0}
-  NEWayPoints: []
 --- !u!1 &5031776378315605128
 GameObject:
   m_ObjectHideFlags: 0
@@ -4296,7 +4272,7 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 1
+          m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &7823886532478931397
 GameObject:
