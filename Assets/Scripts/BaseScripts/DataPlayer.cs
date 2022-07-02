@@ -8,7 +8,6 @@ public class DataPlayer : MonoBehaviour
     public GameObject vesselPrefab;
     public GameObject pinPoint;
     public float replaySpeed = 1f;
-    public float itemScaling = 0.1f;
     public float Time { get; private set; }
     public bool replaying { get; private set; } = false;
     private Dictionary<string, List<BaseVessel.DataBundle>> localDataDictionary;
@@ -17,6 +16,7 @@ public class DataPlayer : MonoBehaviour
     private int numberOfSteps;
     private Dictionary<string, GameObject> vessels;
     private Dictionary<string, List<GameObject>> points;
+    private Vector3 animationDelta;
 
     [ContextMenu("Replay All Data")]
     public void ReplayAllData()
@@ -39,22 +39,28 @@ public class DataPlayer : MonoBehaviour
         checkPoints = DataLogger.Instance.CheckPoints;
         vessels = new Dictionary<string, GameObject>();
         points = new Dictionary<string, List<GameObject>>();
+        float maxX = 0f;
+        float maxZ = 0f;
+        float minX = 0f;
+        float minZ = 0f;
         foreach (var vessel in localDataDictionary)
         {
+            minX = Mathf.Min(minX, vessel.Value[0].eta.east);
+            maxX = Mathf.Max(maxX, vessel.Value[0].eta.east);
+            minZ = Mathf.Min(minZ, vessel.Value[0].eta.north);
+            maxZ = Mathf.Max(maxZ, vessel.Value[0].eta.north);
             GameObject v = Instantiate(vesselPrefab,
-                                       new Vector3(vessel.Value[0].eta.east, vessel.Value[0].eta.down, vessel.Value[0].eta.north) * itemScaling,
+                                       new Vector3(vessel.Value[0].eta.east, -vessel.Value[0].eta.down, vessel.Value[0].eta.north),
                                        Quaternion.AngleAxis(vessel.Value[0].eta.yaw * Mathf.Rad2Deg, Vector3.up));
             v.name = vessel.Key;
             v.transform.localScale = new Vector3(7f, 7f, 50f); //TODO: get this data somehow
-            v.transform.localScale *= itemScaling;
             vessels.Add(vessel.Key, v);
             if (checkPoints.TryGetValue(vessel.Key, out List<Vector3> _points))
             {
                 var pins = new List<GameObject>();
                 foreach (var p in _points)
                 {
-                    var pin = Instantiate(pinPoint, p * itemScaling, Quaternion.identity);
-                    pin.transform.localScale *= itemScaling;
+                    var pin = Instantiate(pinPoint, p, Quaternion.identity);
                     pins.Add(pin);
                 }
                 points.Add(vessel.Key, pins);
@@ -62,7 +68,20 @@ public class DataPlayer : MonoBehaviour
 
             numberOfSteps = (int)Mathf.Min(numberOfSteps, vessel.Value.Count);
         }
+        animationDelta = new Vector3((minX + maxX) / 2f, 0f, (minZ + maxZ) / 2f);
 
+        //for the animation we transform everything as close to 0;0 as we can
+        foreach (var g in vessels.Values)
+        {
+            g.transform.position -= animationDelta;
+        }
+        foreach (var l in points.Values)
+        {
+            foreach (var g in l)
+            {
+                g.transform.position -= animationDelta;
+            }
+        }
         await Task.Yield();
         await Task.Yield();
         return vessels;
@@ -86,8 +105,8 @@ public class DataPlayer : MonoBehaviour
         if (float.IsNaN(lerp)) lerp = 0.5f;
         foreach (var vessel in localDataDictionary)
         {
-            Vector3 currentPos = new Vector3(vessel.Value[currentTimeIndex].eta.east, vessel.Value[currentTimeIndex].eta.down, vessel.Value[currentTimeIndex].eta.north);
-            Vector3 nextPos = new Vector3(vessel.Value[currentTimeIndex + 1].eta.east, vessel.Value[currentTimeIndex + 1].eta.down, vessel.Value[currentTimeIndex + 1].eta.north);
+            Vector3 currentPos = new Vector3(vessel.Value[currentTimeIndex].eta.east, -vessel.Value[currentTimeIndex].eta.down, vessel.Value[currentTimeIndex].eta.north);
+            Vector3 nextPos = new Vector3(vessel.Value[currentTimeIndex + 1].eta.east, -vessel.Value[currentTimeIndex + 1].eta.down, vessel.Value[currentTimeIndex + 1].eta.north);
             Quaternion currRot = Quaternion.Euler(vessel.Value[currentTimeIndex].eta.pitch * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex].eta.yaw * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex].eta.roll * Mathf.Rad2Deg);
@@ -99,7 +118,7 @@ public class DataPlayer : MonoBehaviour
 
             if (vessels.TryGetValue(vessel.Key, out GameObject go))
             {
-                go.transform.position = Vector3.Lerp(currentPos, nextPos, lerp) * itemScaling;
+                go.transform.position = Vector3.Lerp(currentPos, nextPos, lerp) - animationDelta;
                 go.transform.localRotation = Quaternion.Lerp(currRot, nextRot, lerp);
             }
 

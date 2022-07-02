@@ -10,6 +10,16 @@ public class VesselDatabase : Singleton<VesselDatabase>
     public Dictionary<string, VesselData> vesselDataMap = new Dictionary<string, VesselData>();
 
     private List<GameObject> pathObectsPool = new List<GameObject>();
+    private float pathTimeLenght = 120f;
+    private float pathDataTimeLenght = 30f;
+    private float turnRateAcceleration;
+
+    public void SetupDatabasePathPredictionData(float _pathTimeLenght, float _pathDataTimeLenght, float _turnRateAcceleration)
+    {
+        pathTimeLenght = _pathTimeLenght;
+        pathDataTimeLenght = _pathDataTimeLenght;
+        turnRateAcceleration = _turnRateAcceleration;
+    }
 
     //TODO: call this regularly
     public void UpdatePredictedPaths()
@@ -68,7 +78,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
         }
         else
         {
-            vesselDataMap.Add(vessel, new VesselData(dataPoint));
+            vesselDataMap.Add(vessel, new VesselData(dataPoint, turnRateAcceleration, pathTimeLenght, pathDataTimeLenght));
         }
     }
 
@@ -79,7 +89,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
         public List<VesselMeasurementData> pathData;
         //the assigned path prediction profile
         public PathPrediction pathPrediction;
-        //TODO: here we can store all sorts of data of a ship, like type and expected behaviours
+        //predicted path of the ship - its updated by the database handler
         public List<VesselMeasurementData> predictedPath;
 
         public VesselData() 
@@ -98,6 +108,15 @@ public class VesselDatabase : Singleton<VesselDatabase>
             pathPrediction.turnRateAcceleration = 0f;
             pathPrediction.timeTreshold = 20f;
             pathPrediction.predictionPathLenghtInTime = 180f;
+        }
+        public VesselData(VesselMeasurementData dataPoint, float turnRateAcceleration, float timeLength, float dataTimeLength)
+        {
+            pathData = new List<VesselMeasurementData>();
+            pathData.Add(dataPoint);
+            pathPrediction = new PathPrediction();
+            pathPrediction.turnRateAcceleration = turnRateAcceleration;
+            pathPrediction.timeTreshold = dataTimeLength;
+            pathPrediction.predictionPathLenghtInTime = timeLength;
         }
     }
 }

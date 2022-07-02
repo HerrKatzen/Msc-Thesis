@@ -36,12 +36,12 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
     private Dictionary<string, JSONNode> loadedFilesJsonNodes = new Dictionary<string, JSONNode>();
     private bool fileNameSet = false;
 
-    public void SerializeAndSaveVesselData(List<VesselData> vessels, float _stepTime, float _simTime, string ownVessel)
+    public void SerializeAndSaveVesselData(List<VesselData> vessels, SetupValuesData setupValuesData, string ownVessel)
     {
-        StartCoroutine(SerializeAndSaveVesselDataCO(vessels, _stepTime, _simTime, ownVessel));
+        StartCoroutine(SerializeAndSaveVesselDataCO(vessels, setupValuesData, ownVessel));
     }
 
-    private IEnumerator SerializeAndSaveVesselDataCO(List<VesselData> vessels, float _stepTime, float _simTime, string ownVessel)
+    private IEnumerator SerializeAndSaveVesselDataCO(List<VesselData> vessels, SetupValuesData setupValuesData, string ownVessel)
     {
         JSONNode root = new JSONObject();
         JSONNode dataArray = new JSONArray();
@@ -50,8 +50,20 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
         {
             dataArray.Add(data.DataPackage.ToJsonNode());
         }
-        root["stepTime"] = _stepTime;
-        root["simTime"] = _simTime;
+        root["stepTime"] = setupValuesData.stepTime;
+        root["simTime"] = setupValuesData.simTime;
+        root["enviromentRho"] = setupValuesData.enviromentRho;
+        root["enviromentDepth"] = setupValuesData.enviromentDepth;
+        root["radarScanDistance"] = setupValuesData.radarScanDistance;
+        root["radarScanTime"] = setupValuesData.radarScanTime;
+        root["radarScanNoisePercent"] = setupValuesData.radarScanNoisePercent;
+        root["pathTimeLength"] = setupValuesData.pathTimeLength;
+        root["pathDataTimeLength"] = setupValuesData.pathDataTimeLength;
+        root["pathUpdateTime"] = setupValuesData.pathUpdateTime;
+        root["pathTurnRateAcceleration"] = setupValuesData.pathTurnRateAcceleration;
+        root["exclusionZoneFront"] = setupValuesData.exclusionZoneFront;
+        root["exclusionZoneSides"] = setupValuesData.exclusionZoneSides;
+        root["exclusionZoneBack"] = setupValuesData.exclusionZoneBack;
         root["ownVessel"] = ownVessel;
         string json = root.ToString();
 
@@ -107,7 +119,22 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
         if (loadedFilesMap.TryGetValue(fileName, out List<VesselData.VesselMetaDataPackage> file))
         {
             loadedFilesJsonNodes.TryGetValue(fileName, out JSONNode node);
-            simSetupDataHandler.LoadFileData(file, node["stepTime"], node["simTime"], node["ownVessel"]);
+            SetupValuesData setupValuesData = new SetupValuesData();
+            setupValuesData.stepTime = node["stepTime"];
+            setupValuesData.simTime = node["simTime"];
+            setupValuesData.enviromentRho = node["enviromentRho"];
+            setupValuesData.enviromentDepth = node["enviromentDepth"];
+            setupValuesData.radarScanDistance = node["radarScanDistance"];
+            setupValuesData.radarScanTime = node["radarScanTime"];
+            setupValuesData.radarScanNoisePercent = node["radarScanNoisePercent"];
+            setupValuesData.pathTimeLength = node["pathTimeLength"];
+            setupValuesData.pathDataTimeLength = node["pathDataTimeLength"];
+            setupValuesData.pathUpdateTime = node["pathUpdateTime"];
+            setupValuesData.pathTurnRateAcceleration = node["pathTurnRateAcceleration"];
+            setupValuesData.exclusionZoneFront = node["exclusionZoneFront"];
+            setupValuesData.exclusionZoneSides = node["exclusionZoneSides"];
+            setupValuesData.exclusionZoneBack = node["exclusionZoneBack"];
+            simSetupDataHandler.LoadFileData(file, setupValuesData, node["ownVessel"]);
             OnMenuExit.Invoke();
         }
     }

@@ -14,7 +14,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     [SerializeField]
     private SimulationEngine simEngine;
     [SerializeField]
-    MenuHandler setupMenu;
+    private GameObject editMain;
     [SerializeField]
     private VesselDataSerializer vesselDataSerializer;
     [SerializeField]
@@ -32,6 +32,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 
     private List<VesselData> vessels = new List<VesselData>();
     private VesselData activeVesselData;
+    private SetupValuesData setupValues = new SetupValuesData();
 
     void Start()
     {
@@ -105,6 +106,22 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             NEwaypoints.Add(new Vector2(nedN, nedE));
         }
 
+        setupValues = new SetupValuesData();
+        if (ui.simTime.text.Length > 0) setupValues.simTime = float.Parse(ui.simTime.text);
+        if (ui.stepTime.text.Length > 0) setupValues.stepTime = float.Parse(ui.stepTime.text);
+        if (ui.enviromentRho.text.Length > 0) setupValues.enviromentRho = float.Parse(ui.enviromentRho.text);
+        if (ui.enviromentDepth.text.Length > 0) setupValues.enviromentDepth = float.Parse(ui.enviromentDepth.text);
+        if (ui.radarScanDistance.text.Length > 0) setupValues.radarScanDistance = float.Parse(ui.radarScanDistance.text);
+        if (ui.radarScanTime.text.Length > 0) setupValues.radarScanTime = float.Parse(ui.radarScanTime.text);
+        if (ui.radarScanNoisePercent.text.Length > 0) setupValues.radarScanNoisePercent = float.Parse(ui.radarScanNoisePercent.text);
+        if (ui.pathTimeLength.text.Length > 0) setupValues.pathTimeLength = float.Parse(ui.pathTimeLength.text);
+        if (ui.pathDataTimeLength.text.Length > 0) setupValues.pathDataTimeLength = float.Parse(ui.pathDataTimeLength.text);
+        if (ui.pathTurnRateAcceleration.text.Length > 0) setupValues.pathTurnRateAcceleration = float.Parse(ui.pathTurnRateAcceleration.text);
+        if (ui.pathUpdateTime.text.Length > 0) setupValues.pathUpdateTime = float.Parse(ui.pathUpdateTime.text);
+        if (ui.exclusionZoneFront.text.Length > 0) setupValues.exclusionZoneFront = float.Parse(ui.exclusionZoneFront.text);
+        if (ui.exclusionZoneSides.text.Length > 0) setupValues.exclusionZoneSides = float.Parse(ui.exclusionZoneSides.text);
+        if (ui.exclusionZoneBack.text.Length > 0) setupValues.exclusionZoneBack = float.Parse(ui.exclusionZoneBack.text);
+
         ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
         if(ui.ownVesselNameSelector.options.Count == 1)
         {
@@ -124,19 +141,17 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     {
         SaveDataChanges();
         activeVesselData = null;
-        setupMenu.SetMenuNONE();
-        float stepTime = float.Parse(ui.stepTime.text.Length > 0 ? ui.stepTime.text : ui.stepTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        float simTime = float.Parse(ui.simTime.text.Length > 0 ? ui.simTime.text : ui.simTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
+        editMain.SetActive(false);
         string ownVesselName = ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text;
 
-        vesselDataSerializer.SerializeAndSaveVesselData(vessels, stepTime, simTime, ownVesselName);
+        vesselDataSerializer.SerializeAndSaveVesselData(vessels, setupValues, ownVesselName);
     }
 
-    public void LoadFileData(List<VesselData.VesselMetaDataPackage> dataPackages, float _stepTime, float _simTime, string _ownVesselName)
+    public void LoadFileData(List<VesselData.VesselMetaDataPackage> dataPackages, SetupValuesData _setupValuesData, string _ownVesselName)
     {
         ResetUI();
-        setupMenu.SetMenuNONE();
-        ui.ownVesselNameSelector.options.Clear();   
+        editMain.SetActive(false);
+        ui.ownVesselNameSelector.options.Clear();
         activeVesselData = null;
         vessels = new List<VesselData>();
 
@@ -159,8 +174,20 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
             if (dp.vesselName.Equals(_ownVesselName)) ui.ownVesselNameSelector.value = ui.ownVesselNameSelector.options.Count - 1;
 
-            ui.stepTime.text = _stepTime.ToString();
-            ui.simTime.text = _simTime.ToString();
+            ui.stepTime.text = _setupValuesData.stepTime.ToString();
+            ui.simTime.text = _setupValuesData.simTime.ToString();
+            ui.enviromentRho.text = _setupValuesData.enviromentRho.ToString();
+            ui.enviromentDepth.text = _setupValuesData.enviromentDepth.ToString();
+            ui.radarScanDistance.text = _setupValuesData.radarScanDistance.ToString();
+            ui.radarScanNoisePercent.text = _setupValuesData.radarScanNoisePercent.ToString();
+            ui.radarScanTime.text = _setupValuesData.radarScanTime.ToString();
+            ui.pathUpdateTime.text = _setupValuesData.pathUpdateTime.ToString();
+            ui.pathTimeLength.text = _setupValuesData.pathTimeLength.ToString();
+            ui.pathDataTimeLength.text = _setupValuesData.pathDataTimeLength.ToString();
+            ui.pathTurnRateAcceleration.text = _setupValuesData.pathTurnRateAcceleration.ToString();
+            ui.exclusionZoneFront.text = _setupValuesData.exclusionZoneFront.ToString();
+            ui.exclusionZoneSides.text = _setupValuesData.exclusionZoneSides.ToString();
+            ui.exclusionZoneBack.text = _setupValuesData.exclusionZoneBack.ToString();
         }
         ui.ownVesselNameSelector.RefreshShownValue();
     }
@@ -209,7 +236,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             }
         }
         ui.ownVesselNameSelector.RefreshShownValue();
-        setupMenu.SetMenuNONE();
+        editMain.SetActive(false);
     }
 
     public void OnEditClicked(VesselData vesselData)
@@ -268,7 +295,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     {
         SaveDataChanges();
         activeVesselData = null;
-        setupMenu.SetMenuNONE();
+        editMain.SetActive(false);
     }
 
     public void StartSimulation()
@@ -280,7 +307,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 
         mainCanvas.SetActive(false);
         
-        simEngine.StartSimulationFromSetup(vessels, stepTime, simTime, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
+        simEngine.StartSimulationFromSetup(vessels, setupValues, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
     }
 
     [System.Serializable]
@@ -308,7 +335,37 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         public TMP_Dropdown controller;
         public TMP_InputField simTime;
         public TMP_InputField stepTime;
+        public TMP_InputField enviromentRho;
+        public TMP_InputField enviromentDepth;
+        public TMP_InputField radarScanDistance;
+        public TMP_InputField radarScanTime;
+        public TMP_InputField radarScanNoisePercent;
+        public TMP_InputField pathUpdateTime;
+        public TMP_InputField pathTimeLength;
+        public TMP_InputField pathDataTimeLength;
+        public TMP_InputField pathTurnRateAcceleration;
+        public TMP_InputField exclusionZoneFront;
+        public TMP_InputField exclusionZoneBack;
+        public TMP_InputField exclusionZoneSides;
     }
+}
+
+public class SetupValuesData
+{
+    public float stepTime = 0.02f;
+    public float simTime = 120f;
+    public float enviromentRho = 1025f;
+    public float enviromentDepth = 20f;
+    public float radarScanDistance = 10000f;
+    public float radarScanTime = 1f;
+    public float radarScanNoisePercent = 0.01f;
+    public float pathUpdateTime = 3f;
+    public float pathTimeLength = 120f;
+    public float pathDataTimeLength = 30f;
+    public float pathTurnRateAcceleration = 0f;
+    public float exclusionZoneFront = 5f;
+    public float exclusionZoneBack = 2f;
+    public float exclusionZoneSides = 2f;
 }
 
 public interface IDataHandler

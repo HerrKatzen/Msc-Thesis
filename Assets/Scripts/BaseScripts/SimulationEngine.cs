@@ -96,9 +96,9 @@ public class SimulationEngine : MonoBehaviour
             radar = go.AddComponent<Radar>();
             collisionPreditor = go.AddComponent<CollisionPrediction>();
             await Task.Yield();
+            radar.InitRadar(ownVesselName, radarScanDistance, 0.01f, allVesselGameobjects);
             collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length);
-            radar.InitRadar(ownVesselName, radarScanDistance, allVesselGameobjects);
-            collisionPreditor.GenerateExclusionZone(go, ownVesselBase.length);
+            collisionPreditor.GenerateExclusionZone(go);
         }
 
         if(DataLogger.Instance.SimData.TryGetValue(ownVesselName, out ownData))
@@ -107,11 +107,17 @@ public class SimulationEngine : MonoBehaviour
         }
     }
 
-    public async void StartSimulationFromSetup(List<VesselData> setupData, float _stepTime, float timeToSimulate, string _ownVesselName)
+    public async void StartSimulationFromSetup(List<VesselData> setupVesselData, SetupValuesData setupValuesData, string _ownVesselName)
     {
+        radarScanDistance = setupValuesData.radarScanDistance;
+        radarScanTime = setupValuesData.radarScanTime;
+        generatedPathUpdateTime = setupValuesData.pathUpdateTime;
+        enviroment.rho = setupValuesData.enviromentRho;
+        enviroment.depth = setupValuesData.enviromentDepth;
+
         var baseVessels = new List<BaseVessel>();
         ownVesselName = _ownVesselName;
-        foreach (var sd in setupData)
+        foreach (var sd in setupVesselData)
         {
             foreach (var bv in vesselTypes)
             {
@@ -142,7 +148,7 @@ public class SimulationEngine : MonoBehaviour
             }
         }
         //generate all paths
-        simHandler.SetupSimulation(baseVessels, _stepTime, timeToSimulate, enviroment);
+        simHandler.SetupSimulation(baseVessels, setupValuesData.stepTime, setupValuesData.simTime, enviroment);
         await simHandler.RunSimulation();
         await Task.Yield();
 
@@ -153,9 +159,13 @@ public class SimulationEngine : MonoBehaviour
             collisionPreditor = go.AddComponent<CollisionPrediction>();
             await Task.Yield();
             await Task.Yield();
-            collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length);
-            radar.InitRadar(ownVesselName, radarScanDistance, allVesselGameobjects);
-            collisionPreditor.GenerateExclusionZone(go, ownVesselBase.length);
+
+            radar.InitRadar(ownVesselName, radarScanDistance, setupValuesData.radarScanNoisePercent, allVesselGameobjects);
+
+            VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
+            
+            collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
+            collisionPreditor.GenerateExclusionZone(go);
 
             Camera.main.transform.parent = go.transform;
             Camera.main.transform.localScale = Vector3.one;

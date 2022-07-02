@@ -6,22 +6,25 @@ using UnityEngine;
 public class CollisionPrediction : MonoBehaviour
 {
     [SerializeField]
-    float beamClearanceOnSides = 2f;
+    float clearanceOnSides = 2f;
     [SerializeField]
-    float lenghtClearanceBackShip = 2f;
+    float clearanceBackShip = 2f;
     [SerializeField]
-    float lenghtClearanceFrontShip = 5f;
+    float clearanceFrontShip = 5f;
     [SerializeField]
     float lameCurveR = 5f;
 
-    float lenght = 1f;
+    float length = 1f;
     float maxDistance = 1f;
     string vesselName;
 
-    public void InitCollisionPredictionData(string _vesselName, float _lenght)
+    public void InitCollisionPredictionData(string _vesselName, float _length, float _frontClearance = 5f, float _sideClearance = 2f, float _backClearance = 2f)
     {
         vesselName = _vesselName;
-        lenght = _lenght;
+        length = _length;
+        clearanceFrontShip = _frontClearance;
+        clearanceOnSides = _sideClearance;
+        clearanceBackShip = _backClearance;
     }
 
     public void UpdateCollisionData(float currentTime, List<BaseVessel.DataBundle> ownPathData)
@@ -43,7 +46,7 @@ public class CollisionPrediction : MonoBehaviour
     {
         if (ownPathData == null || predictedPath == null) return null;
 
-        maxDistance = Mathf.Max(lenght * beamClearanceOnSides, lenght* lenghtClearanceFrontShip,lenght * lenghtClearanceBackShip) + lenght / 2f;
+        maxDistance = Mathf.Max(length * clearanceOnSides, length * clearanceFrontShip, length * clearanceBackShip) + length / 2f;
         int i = 1, j = 0;
         //Ship data time stamp i will be larger then predicted path j, but ship data i-1 will be smaller
         while(ownPathData[i].timeStamp > predictedPath[j + 1].timeStamp)
@@ -88,12 +91,15 @@ public class CollisionPrediction : MonoBehaviour
         float eastRotated = Mathf.Cos(-heading) * x0 + Mathf.Sin(-heading) * y0; 
         float northRotated = Mathf.Cos(-heading) * y0 - Mathf.Sin(-heading) * x0;
         //we are inside of the Lamé curve if the point's value < 1
-        return Mathf.Pow(Mathf.Abs(eastRotated / (lenght * (0.5f + beamClearanceOnSides))), lameCurveR) +
-               Mathf.Pow(Mathf.Abs((northRotated - lenght * ((lenghtClearanceFrontShip - lenghtClearanceBackShip) / 2f)) / (lenght * (0.5f + (lenghtClearanceBackShip + lenghtClearanceFrontShip) / 2f))), lameCurveR)
+        return Mathf.Pow(Mathf.Abs(eastRotated / (length * (0.5f + clearanceOnSides))), lameCurveR) +
+               Mathf.Pow(Mathf.Abs((northRotated - length * ((clearanceFrontShip - clearanceBackShip) / 2f)) / (length * (0.5f + (clearanceBackShip + clearanceFrontShip) / 2f))), lameCurveR)
                < 1f;
     }
 
-    public void GenerateExclusionZone(GameObject go, float lenght)
+    /// <summary>
+    /// Generates a visual Exclusion zone around the gameobject go
+    /// </summary>
+    public void GenerateExclusionZone(GameObject go)
     {
         var lineHolder = new GameObject();
         lineHolder.transform.parent = go.transform;
@@ -109,10 +115,10 @@ public class CollisionPrediction : MonoBehaviour
         lineRenderer.material.color = Color.red;
         lineRenderer.loop = true;
 
-        float a = lenght * (0.5f + beamClearanceOnSides);
-        float b = lenght * (0.5f + (lenghtClearanceBackShip + lenghtClearanceFrontShip) / 2f);
+        float a = length * (0.5f + clearanceOnSides);
+        float b = length * (0.5f + (clearanceBackShip + clearanceFrontShip) / 2f);
         float r = lameCurveR;
-        float delta = lenght * ((lenghtClearanceFrontShip - lenghtClearanceBackShip) / 2f);
+        float delta = length * ((clearanceFrontShip - clearanceBackShip) / 2f);
 
         Vector3[] linePositions = new Vector3[Mathf.RoundToInt(4f * (a/0.01f))];
         for(float f = -a; f < a; f += 0.01f)
