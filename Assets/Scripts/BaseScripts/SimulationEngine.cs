@@ -24,6 +24,8 @@ public class SimulationEngine : MonoBehaviour
     [Tooltip("the list of vessel types. Should use a prefab with the types as children")]
     [SerializeField]
     private List<BaseVessel> vesselTypes;
+    [SerializeField]
+    private HUDController HUD;
 
     private SimulationHandler simHandler;
     private Enviroment enviroment;
@@ -165,8 +167,8 @@ public class SimulationEngine : MonoBehaviour
             VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
             
             collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
-            collisionPreditor.GenerateExclusionZone(go);
-
+            var exclusionZone = collisionPreditor.GenerateExclusionZone(go);
+            HUD.SetExclusionZone(exclusionZone);
             Camera.main.transform.parent = go.transform;
             Camera.main.transform.localScale = Vector3.one;
             Camera.main.transform.localPosition = new Vector3(0f, 8f, -3f);

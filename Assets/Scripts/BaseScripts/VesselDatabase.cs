@@ -21,7 +21,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
         turnRateAcceleration = _turnRateAcceleration;
     }
 
-    //TODO: call this regularly
+    //call this regularly
     public void UpdatePredictedPaths()
     {
         int i = 0;
@@ -61,7 +61,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
         var positions = new Vector3[vessel.predictedPath.Count];
         for (int j = 0; j < vessel.predictedPath.Count; j++)
         {
-            positions[j] = vessel.predictedPath[j].EUN;
+            positions[j] = vessel.predictedPath[j].EUN + new Vector3(0f, 1f, 0f);
         }
         lineRenderer.SetPositions(positions);
         lineRenderer.Simplify(0.5f);

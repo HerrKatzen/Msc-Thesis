@@ -317,7 +317,7 @@ public class VesselMeasurementData
     /// </summary>
     public float timeStamp;
     /// <summary>
-    /// East North Up: unity coordinates
+    /// East Up North: unity coordinates
     /// </summary>
     public Vector3 EUN;
 

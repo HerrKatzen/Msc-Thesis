@@ -5,9 +5,18 @@ using UnityEngine;
 
 public class DataPlayer : MonoBehaviour
 {
+    public HUDController HUD;
     public GameObject vesselPrefab;
     public GameObject pinPoint;
-    public float replaySpeed = 1f;
+    public float ReplaySpeed
+    {
+        get { return ReplaySpeed; }
+        set 
+        { 
+            ReplaySpeed = value;
+            HUD.SetReplaySpeedText(ReplaySpeed);
+        }
+    }
     public float Time { get; private set; }
     public bool replaying { get; private set; } = false;
     private Dictionary<string, List<BaseVessel.DataBundle>> localDataDictionary;
@@ -54,7 +63,22 @@ public class DataPlayer : MonoBehaviour
                                        Quaternion.AngleAxis(vessel.Value[0].eta.yaw * Mathf.Rad2Deg, Vector3.up));
             v.name = vessel.Key;
             v.transform.localScale = new Vector3(7f, 7f, 50f); //TODO: get this data somehow
+            var trailRenderer = v.GetComponentInChildren<TrailRenderer>();
+            if (trailRenderer != null)
+            {
+                trailRenderer.startWidth = v.transform.localScale.x / 2f;
+                trailRenderer.endWidth = v.transform.localScale.x * 1.2f;
+            }
+            GameObject camTrailing = new GameObject("CamTrailing");
+            camTrailing.transform.parent = v.transform;
+            camTrailing.transform.localPosition = new Vector3(0f, v.transform.localScale.y / 2f + v.transform.localScale.y / 10f, v.transform.localScale.z / 2f + v.transform.localScale.z / 10f);
+            camTrailing.transform.localRotation = Quaternion.Euler(20f, 0f, 0f);
+            GameObject camTop = new GameObject("CamTop");
+            camTop.transform.parent = v.transform;
+            camTop.transform.localPosition = new Vector3(0f, v.transform.localScale.z * 2f, 0f);
+            camTop.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             vessels.Add(vessel.Key, v);
+
             if (checkPoints.TryGetValue(vessel.Key, out List<Vector3> _points))
             {
                 var pins = new List<GameObject>();
@@ -127,6 +151,21 @@ public class DataPlayer : MonoBehaviour
         {
             replaying = false;
         }
-        Time += UnityEngine.Time.deltaTime * replaySpeed;
+        Time += UnityEngine.Time.deltaTime * ReplaySpeed;
+    }
+
+    public void PauseReplay()
+    {
+        ReplaySpeed = 0f;
+    }
+
+    public void PlayReplay()
+    {
+        ReplaySpeed = 1f;
+    }
+
+    public void IncreaseReplaySpeed()
+    {
+        ReplaySpeed += 0.5f;
     }
 }

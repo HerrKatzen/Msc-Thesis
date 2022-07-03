@@ -99,9 +99,9 @@ public class CollisionPrediction : MonoBehaviour
     /// <summary>
     /// Generates a visual Exclusion zone around the gameobject go
     /// </summary>
-    public void GenerateExclusionZone(GameObject go)
+    public GameObject GenerateExclusionZone(GameObject go)
     {
-        var lineHolder = new GameObject();
+        var lineHolder = new GameObject("ExclusionZone");
         lineHolder.transform.parent = go.transform;
         lineHolder.transform.localPosition = Vector3.zero;
         lineHolder.transform.localRotation = Quaternion.identity;
@@ -111,7 +111,7 @@ public class CollisionPrediction : MonoBehaviour
         lineRenderer.useWorldSpace = false;
         lineRenderer.startWidth = 1f;
         lineRenderer.endWidth = 1f;
-        lineRenderer.material = new Material(Shader.Find("Standard"));
+        lineRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
         lineRenderer.material.color = Color.red;
         lineRenderer.loop = true;
 
@@ -125,8 +125,8 @@ public class CollisionPrediction : MonoBehaviour
         {
             float y = b * Mathf.Pow(1f - Mathf.Pow(Mathf.Abs(f / a), r), 1f / r);
 
-            linePositions[Mathf.RoundToInt((f + a) / 0.01f)] = new Vector3(f, 0f, y + delta);
-            linePositions[linePositions.Length - 1 - Mathf.RoundToInt((f + a) / 0.01f)] = new Vector3(f, 0f, -y + delta);
+            linePositions[Mathf.RoundToInt((f + a) / 0.01f)] = new Vector3(f, 1f, y + delta);
+            linePositions[linePositions.Length - 1 - Mathf.RoundToInt((f + a) / 0.01f)] = new Vector3(f, 1f, -y + delta);
         }
 
         for (int i = 1; i < linePositions.Length; i++)
@@ -139,5 +139,7 @@ public class CollisionPrediction : MonoBehaviour
         lineRenderer.positionCount = linePositions.Length;
         lineRenderer.SetPositions(linePositions);
         lineRenderer.Simplify(0.3f);
+
+        return lineHolder;
     }
 }

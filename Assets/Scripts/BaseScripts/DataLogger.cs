@@ -3,16 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SimpleJSON;
+using System.IO;
+using System.Threading.Tasks;
+using TMPro;
 
 public class DataLogger : Singleton<DataLogger>
 {
+    public string simDataFolder;
+    public GameObject simDataFilePrefab;
+    public Transform listElementParent;
+    public GameObject fileNameSetter;
+    public TMP_InputField fileNameInputField;
     public Dictionary<string, List<BaseVessel.DataBundle>> SimData { get; private set; } = new Dictionary<string, List<BaseVessel.DataBundle>>();
     public Dictionary<string, List<Vector3>> CheckPoints { get; private set; } = new Dictionary<string, List<Vector3>>();
     public float StepTime { get; private set; }
+    [HideInInspector]
     public float minNorth = 0f;
+    [HideInInspector]
     public float maxNorth = 100f;
+    [HideInInspector]
     public float minEast = 0f;
+    [HideInInspector]
     public float maxEast = 100f;
+
+    private bool fileNameSet;
 
     public void LogVesselData(string vesselName, BaseVessel.DataBundle dataBundle)
     {
@@ -142,5 +156,51 @@ public class DataLogger : Singleton<DataLogger>
     internal void SetStepTime(float simulationTime)
     {
         StepTime = simulationTime;
+    }
+
+    public void SaveDataToFile()
+    {
+        StartCoroutine(SaveDataToFileCO());
+    }
+    private IEnumerator SaveDataToFileCO()
+    {
+        var json = GetDataAsJson();
+        fileNameSet = false;
+        fileNameSetter.SetActive(true);
+        yield return new WaitUntil(() => fileNameSet);
+        var fileName = fileNameInputField.text.Length > 0 ? fileNameInputField.text : Guid.NewGuid().ToString();
+        if (!Directory.Exists(Path.Combine(Application.persistentDataPath, simDataFolder)))
+        {
+            Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, simDataFolder));
+        }
+        var path = Path.Combine(Application.persistentDataPath, simDataFolder, fileName) + ".json";
+        File.WriteAllText(path, json);
+        fileNameSet = false;
+        fileNameSetter.SetActive(false);
+        PopUpWithButton.Instance.PopupText("File saved at:\n" + path);
+    }
+
+    public async void ReadFileSystem()
+    {
+        var path = Path.Combine(Application.persistentDataPath, simDataFolder);
+        if (!Directory.Exists(path)) return;
+
+        var info = new DirectoryInfo(path);
+        var fileInfo = info.GetFiles();
+
+        foreach (var file in fileInfo)
+        {
+            if (file.Extension.Equals(".json") || file.Extension.Equals(".JSON"))
+            {
+                var instance = Instantiate(simDataFilePrefab, listElementParent);
+                await Task.Yield();
+                await Task.Yield();
+            }
+        }
+    }
+
+    public void FileNameSetDone()
+    {
+        fileNameSet = true;
     }
 }
