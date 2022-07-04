@@ -82,6 +82,15 @@ public class VesselDatabase : Singleton<VesselDatabase>
         }
     }
 
+    public void ResetDatabase()
+    {
+        vesselDataMap = new Dictionary<string, VesselData>();
+        var temp = drawPredictedPaths;
+        drawPredictedPaths = false;
+        UpdatePredictedPaths();
+        drawPredictedPaths = temp;
+    }
+
     [System.Serializable]
     public class VesselData
     {

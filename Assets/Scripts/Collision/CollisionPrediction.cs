@@ -17,6 +17,7 @@ public class CollisionPrediction : MonoBehaviour
     float length = 1f;
     float maxDistance = 1f;
     string vesselName;
+    IColissionHandler colissionHandler;
 
     public void InitCollisionPredictionData(string _vesselName, float _length, float _frontClearance = 5f, float _sideClearance = 2f, float _backClearance = 2f)
     {
@@ -33,16 +34,18 @@ public class CollisionPrediction : MonoBehaviour
         {
             if (vessel.Key.Equals(vesselName)) continue;
 
-            VesselMeasurementData collision = PredictCollisionTime(ownPathData, vessel.Value.predictedPath);
+            VesselMeasurementData collision = PredictCollision(ownPathData, vessel.Value.predictedPath);
             if(collision != null)
             {
                 Debug.Log($"Collision Detected {collision.timeStamp - currentTime} seconds ahead of collision!" +
                     $"\ncurrent time: {currentTime}, time of collision: {collision.timeStamp}");
+
+                colissionHandler.RaiseCollision(vessel.Key, collision.EUN, collision.timeStamp);
             }
         }
     }
 
-    public VesselMeasurementData PredictCollisionTime(List<BaseVessel.DataBundle> ownPathData, List<VesselMeasurementData> predictedPath)
+    public VesselMeasurementData PredictCollision(List<BaseVessel.DataBundle> ownPathData, List<VesselMeasurementData> predictedPath)
     {
         if (ownPathData == null || predictedPath == null) return null;
 
@@ -141,5 +144,10 @@ public class CollisionPrediction : MonoBehaviour
         lineRenderer.Simplify(0.3f);
 
         return lineHolder;
+    }
+
+    public void SetCollisionHandler(IColissionHandler _colissionHandler)
+    {
+        colissionHandler = _colissionHandler;
     }
 }

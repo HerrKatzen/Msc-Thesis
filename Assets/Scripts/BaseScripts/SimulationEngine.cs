@@ -8,7 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(SimulationHandler))]
 [RequireComponent(typeof(Enviroment))]
 [RequireComponent(typeof(DataPlayer))]
-public class SimulationEngine : MonoBehaviour
+public class SimulationEngine : MonoBehaviour, IColissionHandler
 {
     public string ownVesselName = "";
 
@@ -39,6 +39,7 @@ public class SimulationEngine : MonoBehaviour
     private float previousTime = 0f;
     private List<BaseVessel.DataBundle> ownData;
     private BaseVessel ownVesselBase;
+    private GameObject collisionPoint;
 
     private void Awake()
     {
@@ -165,7 +166,7 @@ public class SimulationEngine : MonoBehaviour
             radar.InitRadar(ownVesselName, radarScanDistance, setupValuesData.radarScanNoisePercent, allVesselGameobjects);
 
             VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
-            
+            collisionPreditor.SetCollisionHandler(this);
             collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
             var exclusionZone = collisionPreditor.GenerateExclusionZone(go);
             HUD.SetExclusionZone(exclusionZone);
@@ -213,4 +214,44 @@ public class SimulationEngine : MonoBehaviour
         previousTime = dataPlayer.Time;
     }
 
+    public async void RaiseCollision(string vesselName, Vector3 position, float collisionTime)
+    {
+        dataPlayer.PauseReplay();
+        GameObject otherVessel, ownVessel;
+        if (!allVesselGameobjects.TryGetValue(vesselName, out otherVessel)) return;
+        if (!allVesselGameobjects.TryGetValue(ownVesselName, out  ownVessel)) return;
+
+        collisionPoint = new GameObject("collisionPoint");
+        var other = Instantiate(otherVessel, collisionPoint.transform);
+        var own = Instantiate(ownVessel, collisionPoint.transform);
+        await Task.Yield();
+        await Task.Yield();
+        other.transform.position = position;
+
+        for(int i = 1; i < ownData.Count; i++)
+        {
+            if(ownData[i].timeStamp >= collisionTime)
+            {
+                float lerp = (collisionTime - ownData[i].timeStamp) / (ownData[i].timeStamp - ownData[i - 1].timeStamp);
+                Vector2 currentEN = new Vector2(ownData[i].eta.east, ownData[i].eta.north);
+                Vector2 previousEN = new Vector2(ownData[i - 1].eta.east, ownData[i - 1].eta.north);
+                Vector2 lerpedEN = Vector2.Lerp(previousEN, currentEN, lerp);
+                own.transform.position = new Vector3(lerpedEN.x, 0f, lerpedEN.y);
+                var angle = Vector2.SignedAngle(new Vector2(0f, 1f), currentEN - previousEN);
+                own.transform.rotation = Quaternion.AngleAxis(angle, Vector3.up);
+            }
+        }
+
+        PopUpWithButton.Instance.PopupText($"Collision Detected with vessel: {vesselName}.\nCollision in {collisionTime - dataPlayer.Time} seconds.");
+    }
+
+    public void RemoveCollisionObjectsIfPresent()
+    {
+        Destroy(collisionPoint);
+    }
+}
+
+public interface IColissionHandler
+{
+    public void RaiseCollision(string vesselName, Vector3 position, float time);
 }

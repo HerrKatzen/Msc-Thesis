@@ -100,7 +100,7 @@ public class PathPrediction : MonoBehaviour
         {
             if(distane < anchoredShipTravelTreshold)
             {
-                //marking ship as obstacle - predictiong its average position as its poistion in the future
+                //marking ship as obstacle - predictiong its average position as its position in the future
                 Vector3 averagePoint = Vector3.zero;
                 foreach (var point in catmulRomPoints)
                 {

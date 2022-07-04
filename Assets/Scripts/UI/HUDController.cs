@@ -40,10 +40,18 @@ public class HUDController : MonoBehaviour
             lineRenderer.endWidth = 1f;
             lineRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
             lineRenderer.material.color = Color.yellow;
-            lineRenderer.positionCount = points.Value.Count;
-            for (int i = 0; i < points.Value.Count; i++)
+            lineRenderer.positionCount = points.Value.Count + 1;
+            if(DataLogger.Instance.SimData.TryGetValue(points.Key, out List<BaseVessel.DataBundle> dataBundleList))
             {
-                lineRenderer.SetPosition(i, points.Value[i] + new Vector3(0f, 1f, 0f) - animationDelta);
+                lineRenderer.SetPosition(0, new Vector3(dataBundleList[0].eta.east, 1f, dataBundleList[0].eta.north) - animationDelta);
+            }
+            else
+            {
+                lineRenderer.SetPosition(0, points.Value[0] + new Vector3(0f, 1f, 0f) - animationDelta);
+            }
+            for (int i = 1; i < points.Value.Count + 1; i++)
+            {
+                lineRenderer.SetPosition(i, points.Value[i - 1] + new Vector3(0f, 1f, 0f) - animationDelta);
             }
         }
 
@@ -62,7 +70,7 @@ public class HUDController : MonoBehaviour
             lineRenderer.positionCount = vesselPositions.Count;
             for (int i = 0; i < vesselPositions.Count; i++)
             {
-                lineRenderer.SetPosition(i, new Vector3(vesselPositions[i].eta.east, 1f, vesselPositions[i].eta.north));
+                lineRenderer.SetPosition(i, new Vector3(vesselPositions[i].eta.east, 1f, vesselPositions[i].eta.north) - animationDelta);
             }
             lineRenderer.Simplify(0.3f);
         }

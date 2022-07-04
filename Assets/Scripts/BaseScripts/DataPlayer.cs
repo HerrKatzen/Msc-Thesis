@@ -111,6 +111,7 @@ public class DataPlayer : MonoBehaviour
         await Task.Yield();
 
         HUD.InitHudController(vessels, animationDelta);
+        HUD.SetReplaySpeedText(ReplaySpeed);
         return vessels;
     }
 
@@ -170,5 +171,11 @@ public class DataPlayer : MonoBehaviour
     public void IncreaseReplaySpeed()
     {
         ReplaySpeed += 0.5f;
+    }
+
+    public void ResetDataReplay()
+    {
+        Time = 0f;
+        VesselDatabase.Instance.ResetDatabase();
     }
 }

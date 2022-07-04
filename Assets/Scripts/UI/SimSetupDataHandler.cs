@@ -104,22 +104,6 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             NEwaypoints.Add(new Vector2(nedN, nedE));
         }
 
-        setupValues = new SetupValuesData();
-        if (ui.simTime.text.Length > 0) setupValues.simTime = float.Parse(ui.simTime.text);
-        if (ui.stepTime.text.Length > 0) setupValues.stepTime = float.Parse(ui.stepTime.text);
-        if (ui.enviromentRho.text.Length > 0) setupValues.enviromentRho = float.Parse(ui.enviromentRho.text);
-        if (ui.enviromentDepth.text.Length > 0) setupValues.enviromentDepth = float.Parse(ui.enviromentDepth.text);
-        if (ui.radarScanDistance.text.Length > 0) setupValues.radarScanDistance = float.Parse(ui.radarScanDistance.text);
-        if (ui.radarScanTime.text.Length > 0) setupValues.radarScanTime = float.Parse(ui.radarScanTime.text);
-        if (ui.radarScanNoisePercent.text.Length > 0) setupValues.radarScanNoisePercent = float.Parse(ui.radarScanNoisePercent.text);
-        if (ui.pathTimeLength.text.Length > 0) setupValues.pathTimeLength = float.Parse(ui.pathTimeLength.text);
-        if (ui.pathDataTimeLength.text.Length > 0) setupValues.pathDataTimeLength = float.Parse(ui.pathDataTimeLength.text);
-        if (ui.pathTurnRateAcceleration.text.Length > 0) setupValues.pathTurnRateAcceleration = float.Parse(ui.pathTurnRateAcceleration.text);
-        if (ui.pathUpdateTime.text.Length > 0) setupValues.pathUpdateTime = float.Parse(ui.pathUpdateTime.text);
-        if (ui.exclusionZoneFront.text.Length > 0) setupValues.exclusionZoneFront = float.Parse(ui.exclusionZoneFront.text);
-        if (ui.exclusionZoneSides.text.Length > 0) setupValues.exclusionZoneSides = float.Parse(ui.exclusionZoneSides.text);
-        if (ui.exclusionZoneBack.text.Length > 0) setupValues.exclusionZoneBack = float.Parse(ui.exclusionZoneBack.text);
-
         ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
         if(ui.ownVesselNameSelector.options.Count == 1)
         {
@@ -135,9 +119,29 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         ResetUI();
     }
 
+    public void SaveSimSetupValues()
+    {
+        setupValues = new SetupValuesData();
+        if (ui.simTime.text.Length > 0) setupValues.simTime = float.Parse(ui.simTime.text);
+        if (ui.stepTime.text.Length > 0) setupValues.stepTime = float.Parse(ui.stepTime.text);
+        if (ui.enviromentRho.text.Length > 0) setupValues.enviromentRho = float.Parse(ui.enviromentRho.text);
+        if (ui.enviromentDepth.text.Length > 0) setupValues.enviromentDepth = float.Parse(ui.enviromentDepth.text);
+        if (ui.radarScanDistance.text.Length > 0) setupValues.radarScanDistance = float.Parse(ui.radarScanDistance.text);
+        if (ui.radarScanTime.text.Length > 0) setupValues.radarScanTime = float.Parse(ui.radarScanTime.text);
+        if (ui.radarScanNoisePercent.text.Length > 0) setupValues.radarScanNoisePercent = float.Parse(ui.radarScanNoisePercent.text);
+        if (ui.pathTimeLength.text.Length > 0) setupValues.pathTimeLength = float.Parse(ui.pathTimeLength.text);
+        if (ui.pathDataTimeLength.text.Length > 0) setupValues.pathDataTimeLength = float.Parse(ui.pathDataTimeLength.text);
+        if (ui.pathTurnRateAcceleration.text.Length > 0) setupValues.pathTurnRateAcceleration = float.Parse(ui.pathTurnRateAcceleration.text);
+        if (ui.pathUpdateTime.text.Length > 0) setupValues.pathUpdateTime = float.Parse(ui.pathUpdateTime.text);
+        if (ui.exclusionZoneFront.text.Length > 0) setupValues.exclusionZoneFront = float.Parse(ui.exclusionZoneFront.text);
+        if (ui.exclusionZoneSides.text.Length > 0) setupValues.exclusionZoneSides = float.Parse(ui.exclusionZoneSides.text);
+        if (ui.exclusionZoneBack.text.Length > 0) setupValues.exclusionZoneBack = float.Parse(ui.exclusionZoneBack.text);
+    }
+
     public void SerializeDataAndSave()
     {
         SaveDataChanges();
+        SaveSimSetupValues();
         activeVesselData = null;
         editMain.SetActive(false);
         string ownVesselName = ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text;
@@ -299,7 +303,10 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     public void StartSimulation()
     {
         if (vessels.Count == 0) return;
-        
+
+        SaveDataChanges();
+        SaveSimSetupValues();
+
         simEngine.StartSimulationFromSetup(vessels, setupValues, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
     }
 
