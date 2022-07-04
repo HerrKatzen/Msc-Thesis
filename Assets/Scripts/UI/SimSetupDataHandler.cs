@@ -10,8 +10,6 @@ using System.IO;
 public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 {
     [SerializeField]
-    private GameObject mainCanvas;
-    [SerializeField]
     private SimulationEngine simEngine;
     [SerializeField]
     private GameObject editMain;
@@ -301,11 +299,6 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     public void StartSimulation()
     {
         if (vessels.Count == 0) return;
-
-        float stepTime = float.Parse(ui.stepTime.text.Length > 0 ? ui.stepTime.text : ui.stepTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-        float simTime = float.Parse(ui.simTime.text.Length > 0 ? ui.simTime.text : ui.simTime.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text);
-
-        mainCanvas.SetActive(false);
         
         simEngine.StartSimulationFromSetup(vessels, setupValues, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
     }

@@ -26,7 +26,7 @@ public class HUDController : MonoBehaviour
             scrollElement.GetComponent<HUDListElementFunctions>().Init(vessel.Key, vessel.Value);
         }
 
-        expectedPathLineHolder = new GameObject("LinesHolder");
+        expectedPathLineHolder = new GameObject("ExpectedPathLinesHolder");
         expectedPathLineHolder.transform.parent = transform;
         foreach (var points in DataLogger.Instance.CheckPoints)
        {
@@ -47,6 +47,8 @@ public class HUDController : MonoBehaviour
             }
         }
 
+        actualPathLineHolder = new GameObject("actualPathLineHolder");
+        actualPathLineHolder.transform.parent = transform;
         foreach (var vesselPositions in DataLogger.Instance.SimData.Values)
         {
             var path = new GameObject("path");

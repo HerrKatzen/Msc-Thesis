@@ -10,13 +10,14 @@ public class DataPlayer : MonoBehaviour
     public GameObject pinPoint;
     public float ReplaySpeed
     {
-        get { return ReplaySpeed; }
+        get { return replaySpeed; }
         set 
         { 
-            ReplaySpeed = value;
-            HUD.SetReplaySpeedText(ReplaySpeed);
+            replaySpeed = value;
+            HUD.SetReplaySpeedText(replaySpeed);
         }
     }
+    private float replaySpeed;
     public float Time { get; private set; }
     public bool replaying { get; private set; } = false;
     private Dictionary<string, List<BaseVessel.DataBundle>> localDataDictionary;
@@ -108,6 +109,8 @@ public class DataPlayer : MonoBehaviour
         }
         await Task.Yield();
         await Task.Yield();
+
+        HUD.InitHudController(vessels, animationDelta);
         return vessels;
     }
 
