@@ -28,7 +28,7 @@ public class FileLoadData : MonoBehaviour
 
     public void LoadFile()
     {
-        var result = fileLoader.LoadFileFromFileName(fileName.text);
+        var result = fileLoader.LoadFileFromFileName(fileName.text, ResetButton);
 
         if(result)
         {
@@ -45,5 +45,11 @@ public class FileLoadData : MonoBehaviour
     {
         fileLoader.DeleteFile(fileName.text);
         Destroy(gameObject);
+    }
+
+    public void ResetButton()
+    {
+        loadButtonText.text = "Load File";
+        loadButton.interactable = true;
     }
 }

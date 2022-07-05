@@ -6,25 +6,37 @@ using SimpleJSON;
 using System.IO;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEngine.UI;
 
-public class DataLogger : Singleton<DataLogger>
+public class DataLogger : Singleton<DataLogger>, IFileLoader
 {
     public string simDataFolder;
+    [SerializeField]
+    private SimSetupDataHandler simSetupDataHandler;
     public GameObject simDataFilePrefab;
+    public GameObject noFilesOverlay;
     public Transform listElementParent;
     public GameObject fileNameSetter;
-    public TMP_InputField fileNameInputField;
+    [SerializeField]
+    private TMP_InputField fileNameInputField;
+    [SerializeField]
+    private Button startReplayButton;
+    private FileLoadData lastLoadedFile;
     public Dictionary<string, List<BaseVessel.DataBundle>> SimData { get; private set; } = new Dictionary<string, List<BaseVessel.DataBundle>>();
     public Dictionary<string, List<Vector3>> CheckPoints { get; private set; } = new Dictionary<string, List<Vector3>>();
     public float StepTime { get; private set; }
+    public SetupValuesData setupValuesData { get; private set; }
+    public string ownVesselName { get; private set; }
+    public List<VesselData.VesselMetaDataPackage> vesselData { get; private set; }
     [HideInInspector]
-    public float minNorth = 0f;
+    public float minNorth = float.MaxValue;
     [HideInInspector]
-    public float maxNorth = 100f;
+    public float maxNorth = float.MinValue;
     [HideInInspector]
-    public float minEast = 0f;
+    public float minEast = float.MaxValue;
     [HideInInspector]
-    public float maxEast = 100f;
+    public float maxEast = float.MinValue;
+    private IFileLoader.ResetCallerDelegate resetCallerUI;
 
     private bool fileNameSet;
 
@@ -87,7 +99,7 @@ public class DataLogger : Singleton<DataLogger>
 
     public string GetDataAsJson()
     {
-        JSONNode root = new JSONObject();
+        JSONNode root = simSetupDataHandler.GetSetupDataAsJson();
         var simD = new JSONObject();
         root["SimData"] = simD;
         foreach (var data in SimData)
@@ -114,7 +126,7 @@ public class DataLogger : Singleton<DataLogger>
                 values.Add(vector3Node);
             }
         }
-        root["stepTime"] = StepTime;
+
         return root.ToString();
     }
 
@@ -126,6 +138,10 @@ public class DataLogger : Singleton<DataLogger>
 
     public void ReadLogDataFromJson(string json)
     {
+        minNorth = float.MaxValue;
+        maxNorth = float.MinValue;
+        minEast = float.MaxValue;
+        maxEast = float.MinValue;
         SimData = new Dictionary<string, List<BaseVessel.DataBundle>>();
         CheckPoints = new Dictionary<string, List<Vector3>>();
 
@@ -135,7 +151,12 @@ public class DataLogger : Singleton<DataLogger>
             var itemList = new List<BaseVessel.DataBundle>();
             foreach (var o in pair.Value)
             {
-                itemList.Add(new BaseVessel.DataBundle(o));
+                var dataBundle = new BaseVessel.DataBundle(o);
+                minNorth = Mathf.Min(dataBundle.eta.north, minNorth);
+                maxNorth = Mathf.Max(dataBundle.eta.north, maxNorth);
+                minEast = Mathf.Min(dataBundle.eta.east, minEast);
+                maxEast = Mathf.Max(dataBundle.eta.east, maxEast);
+                itemList.Add(dataBundle);
             }
             SimData.Add(pair.Key, itemList);
         }
@@ -151,6 +172,16 @@ public class DataLogger : Singleton<DataLogger>
         }
 
         StepTime = root["stepTime"];
+        setupValuesData = new SetupValuesData(root);
+        ownVesselName = root["ownVessel"];
+
+        JSONNode dataArray = root["allShipData"];
+        vesselData = new List<VesselData.VesselMetaDataPackage>();
+        foreach (var data in dataArray)
+        {
+            var vessel = new VesselData.VesselMetaDataPackage(data);
+            vesselData.Add(vessel);
+        }
     }
 
     internal void SetStepTime(float simulationTime)
@@ -182,6 +213,7 @@ public class DataLogger : Singleton<DataLogger>
 
     public async void ReadFileSystem()
     {
+        DeleteFileList();
         var path = Path.Combine(Application.persistentDataPath, simDataFolder);
         if (!Directory.Exists(path)) return;
 
@@ -195,12 +227,63 @@ public class DataLogger : Singleton<DataLogger>
                 var instance = Instantiate(simDataFilePrefab, listElementParent);
                 await Task.Yield();
                 await Task.Yield();
+                var fileLoadData = instance.GetComponent<FileLoadData>();
+                if (fileLoadData == null) continue;
+                fileLoadData.SetText(file.Name);
+                fileLoadData.SetFileLoader(this);
+                noFilesOverlay.SetActive(false);
             }
         }
+    }
+    public void DeleteFileList()
+    {
+        for (int i = listElementParent.childCount - 1; i >= 0; i--)
+        {
+            Destroy(listElementParent.GetChild(i).gameObject);
+        }
+        startReplayButton.interactable = false;
     }
 
     public void FileNameSetDone()
     {
         fileNameSet = true;
+    }
+
+    public bool LoadFileFromFileName(string fileName, IFileLoader.ResetCallerDelegate resetCaller)
+    {
+        var path = Path.Combine(Application.persistentDataPath, simDataFolder);
+        if (!Directory.Exists(path)) return false;
+        if (!File.Exists(Path.Combine(path, fileName))) return false;
+
+        if (resetCallerUI != null) resetCallerUI.Invoke();
+        resetCallerUI = resetCaller;
+
+        string jsonData = File.ReadAllText(Path.Combine(path, fileName));
+
+        try
+        {
+            ReadLogDataFromJson(jsonData);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message + "\n" + e.StackTrace);
+            startReplayButton.interactable = false;
+            return false;
+        }
+        startReplayButton.interactable = true;
+        return true;
+    }
+
+    public void DeleteFile(string fileName)
+    {
+        var path = Path.Combine(Application.persistentDataPath, simDataFolder);
+        if (!Directory.Exists(path)) return;
+        if (!File.Exists(Path.Combine(path, fileName))) return;
+
+        File.Delete(Path.Combine(path, fileName));
+        if (listElementParent.childCount == 0)
+        {
+            noFilesOverlay.SetActive(true);
+        }
     }
 }

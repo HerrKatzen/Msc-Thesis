@@ -31,6 +31,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     private List<VesselData> vessels = new List<VesselData>();
     private VesselData activeVesselData;
     private SetupValuesData setupValues = new SetupValuesData();
+    private string ownVesselName = "";
 
     void Start()
     {
@@ -306,8 +307,13 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 
         SaveDataChanges();
         SaveSimSetupValues();
+        ownVesselName = ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text;
+        simEngine.StartSimulationFromSetup(vessels, setupValues, ownVesselName);
+    }
 
-        simEngine.StartSimulationFromSetup(vessels, setupValues, ui.ownVesselNameSelector.options[ui.ownVesselNameSelector.value].text);
+    public JSONNode GetSetupDataAsJson()
+    {
+        return vesselDataSerializer.SerializeSetupData(vessels, setupValues, ownVesselName);
     }
 
     [System.Serializable]
@@ -366,6 +372,45 @@ public class SetupValuesData
     public float exclusionZoneFront = 5f;
     public float exclusionZoneBack = 2f;
     public float exclusionZoneSides = 2f;
+
+    public SetupValuesData() { }
+    public SetupValuesData(JSONNode node)
+    {
+        stepTime = node["stepTime"];
+        simTime = node["simTime"];
+        enviromentRho = node["enviromentRho"];
+        enviromentDepth = node["enviromentDepth"];
+        radarScanDistance = node["radarScanDistance"];
+        radarScanTime = node["radarScanTime"];
+        radarScanNoisePercent = node["radarScanNoisePercent"];
+        pathTimeLength = node["pathTimeLength"];
+        pathDataTimeLength = node["pathDataTimeLength"];
+        pathUpdateTime = node["pathUpdateTime"];
+        pathTurnRateAcceleration = node["pathTurnRateAcceleration"];
+        exclusionZoneFront = node["exclusionZoneFront"];
+        exclusionZoneSides = node["exclusionZoneSides"];
+        exclusionZoneBack = node["exclusionZoneBack"];
+    }
+
+    public JSONNode AddToJsonNode(JSONNode node)
+    {
+        node["stepTime"] = stepTime;
+        node["simTime"] = simTime;
+        node["enviromentRho"] = enviromentRho;
+        node["enviromentDepth"] = enviromentDepth;
+        node["radarScanDistance"] = radarScanDistance;
+        node["radarScanTime"] = radarScanTime;
+        node["radarScanNoisePercent"] = radarScanNoisePercent;
+        node["pathTimeLength"] = pathTimeLength;
+        node["pathDataTimeLength"] = pathDataTimeLength;
+        node["pathUpdateTime"] = pathUpdateTime;
+        node["pathTurnRateAcceleration"] = pathTurnRateAcceleration;
+        node["exclusionZoneFront"] = exclusionZoneFront;
+        node["exclusionZoneSides"] = exclusionZoneSides;
+        node["exclusionZoneBack"] = exclusionZoneBack;
+
+        return node;
+    }
 }
 
 public interface IDataHandler

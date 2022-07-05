@@ -49,16 +49,8 @@ public class DataPlayer : MonoBehaviour
         checkPoints = DataLogger.Instance.CheckPoints;
         vessels = new Dictionary<string, GameObject>();
         points = new Dictionary<string, List<GameObject>>();
-        float maxX = 0f;
-        float maxZ = 0f;
-        float minX = 0f;
-        float minZ = 0f;
         foreach (var vessel in localDataDictionary)
         {
-            minX = Mathf.Min(minX, vessel.Value[0].eta.east);
-            maxX = Mathf.Max(maxX, vessel.Value[0].eta.east);
-            minZ = Mathf.Min(minZ, vessel.Value[0].eta.north);
-            maxZ = Mathf.Max(maxZ, vessel.Value[0].eta.north);
             GameObject v = Instantiate(vesselPrefab,
                                        new Vector3(vessel.Value[0].eta.east, -vessel.Value[0].eta.down, vessel.Value[0].eta.north),
                                        Quaternion.AngleAxis(vessel.Value[0].eta.yaw * Mathf.Rad2Deg, Vector3.up));
@@ -71,13 +63,20 @@ public class DataPlayer : MonoBehaviour
                 trailRenderer.endWidth = v.transform.localScale.x * 1.2f;
             }
             GameObject camTrailing = new GameObject("CamTrailing");
-            camTrailing.transform.parent = v.transform;
-            camTrailing.transform.localPosition = new Vector3(0f, v.transform.localScale.y / 2f + v.transform.localScale.y / 10f, v.transform.localScale.z / 2f + v.transform.localScale.z / 10f);
+            var back = v.transform.Find("BACK");
+            back.localScale = new Vector3(1f / v.transform.localScale.x, 1f / v.transform.localScale.y,1f /  v.transform.localScale.z);
+            camTrailing.transform.parent = back;
+            camTrailing.transform.localScale = Vector3.one;
+            camTrailing.transform.localPosition = new Vector3(0f, 3f + v.transform.localScale.z / 2f, -10f - v.transform.localScale.z);
             camTrailing.transform.localRotation = Quaternion.Euler(20f, 0f, 0f);
+            camTrailing.transform.parent = v.transform;
             GameObject camTop = new GameObject("CamTop");
-            camTop.transform.parent = v.transform;
-            camTop.transform.localPosition = new Vector3(0f, v.transform.localScale.z * 2f, 0f);
+            var top = v.transform.Find("TOP");
+            top.localScale = new Vector3(1f / v.transform.localScale.x, 1f / v.transform.localScale.y, 1f / v.transform.localScale.z);
+            camTop.transform.parent = top;
+            camTop.transform.localPosition = new Vector3(0f, v.transform.localScale.z * 3f, 0f);
             camTop.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            camTop.transform.parent = v.transform;
             vessels.Add(vessel.Key, v);
 
             if (checkPoints.TryGetValue(vessel.Key, out List<Vector3> _points))
@@ -93,7 +92,9 @@ public class DataPlayer : MonoBehaviour
 
             numberOfSteps = (int)Mathf.Min(numberOfSteps, vessel.Value.Count);
         }
-        animationDelta = new Vector3((minX + maxX) / 2f, 0f, (minZ + maxZ) / 2f);
+        animationDelta = new Vector3((DataLogger.Instance.minEast + DataLogger.Instance.maxEast) / 2f, 
+                                    0f, 
+                                    (DataLogger.Instance.minNorth + DataLogger.Instance.maxNorth) / 2f);
 
         //for the animation we transform everything as close to 0;0 as we can
         foreach (var g in vessels.Values)
@@ -175,7 +176,31 @@ public class DataPlayer : MonoBehaviour
 
     public void ResetDataReplay()
     {
+        ReplaySpeed = 0f;
         Time = 0f;
         VesselDatabase.Instance.ResetDatabase();
     }
+
+    public void AbortReplay()
+    {
+        replaying = false;
+        Camera.main.transform.parent = null;
+        foreach (var vessel in vessels)
+        {
+            Destroy(vessel.Value);
+        }
+        foreach (var point in points)
+        {
+            for(int i = point.Value.Count - 1; i >= 0; i--)
+            {
+                Destroy(point.Value[i]);
+            }
+        }
+        vessels = null;
+        points = null;
+        localDataDictionary = null;
+        checkPoints = null;
+
+        ResetDataReplay();
+    }     
 }

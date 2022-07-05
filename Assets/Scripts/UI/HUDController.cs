@@ -75,11 +75,11 @@ public class HUDController : MonoBehaviour
             lineRenderer.Simplify(0.3f);
         }
 
-        float y = Mathf.Max((DataLogger.Instance.maxNorth - DataLogger.Instance.minNorth) / 2f / Mathf.Tan(Camera.main.fieldOfView * Mathf.Deg2Rad),
-                             (DataLogger.Instance.maxEast - DataLogger.Instance.minEast) / 2f / Mathf.Tan((Camera.main.fieldOfView + 10f) * Mathf.Deg2Rad));
+        float y = Mathf.Max(((DataLogger.Instance.maxNorth - DataLogger.Instance.minNorth) / 2f) / Mathf.Tan(Camera.main.fieldOfView / 2f * Mathf.Deg2Rad),
+                             ((DataLogger.Instance.maxEast - DataLogger.Instance.minEast) / 2f) / Mathf.Tan((Camera.main.fieldOfView + 10f) / 2f * Mathf.Deg2Rad));
         var overLookingCamObject = new GameObject("OverLookingCamera");
         overLookingCam = overLookingCamObject.transform;
-        overLookingCam.position = new Vector3(0f, y, 0f);
+        overLookingCam.position = new Vector3(0f, y * 1.1f, 0f);
         overLookingCam.rotation = Quaternion.Euler(90f, 0f, 0f);
     }
 
@@ -104,6 +104,7 @@ public class HUDController : MonoBehaviour
     {
         exclusionZone.SetActive(show);
     }
+
     public void SetOverlookingCam()
     {
         Camera.main.transform.parent = overLookingCam;
@@ -114,5 +115,17 @@ public class HUDController : MonoBehaviour
     public void SetReplaySpeedText(float value)
     {
         replaySpeedText.text = "Playback Speed: " + value;
+    }
+
+    public void AbortPlaybackAndDelete()
+    {
+        Camera.main.transform.parent = null;
+        Destroy(actualPathLineHolder);
+        Destroy(expectedPathLineHolder);
+        for(int i = scrollViewParent.childCount - 1; i >= 0; i--)
+        {
+            Destroy(scrollViewParent.GetChild(i).gameObject);
+        }
+        Destroy(overLookingCam.gameObject);
     }
 }

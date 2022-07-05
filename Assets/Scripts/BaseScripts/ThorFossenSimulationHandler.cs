@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class SimulationHandler : MonoBehaviour
+public class ThorFossenSimulationHandler : MonoBehaviour
 {
     [SerializeField]
     private List<BaseVessel> vessels;
