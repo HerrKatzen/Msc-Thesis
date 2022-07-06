@@ -23615,6 +23615,8 @@ MonoBehaviour:
   - {fileID: 1746048874}
   - {fileID: 2125048708}
   HUD: {fileID: 534143215}
+  whiteAlphaMat: {fileID: 2100000, guid: 03dc61a1cb95ef24da09a30b926b606d, type: 2}
+  redAlphaMat: {fileID: 2100000, guid: 4caac9e677e6716468e0631fefd2b010, type: 2}
 --- !u!4 &1508463372
 Transform:
   m_ObjectHideFlags: 0

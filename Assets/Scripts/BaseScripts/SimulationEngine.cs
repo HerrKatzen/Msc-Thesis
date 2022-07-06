@@ -26,6 +26,10 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
     private List<BaseVessel> vesselTypes;
     [SerializeField]
     private HUDController HUD;
+    [SerializeField]
+    private Material whiteAlphaMat;
+    [SerializeField]
+    private Material redAlphaMat;
 
     private ThorFossenSimulationHandler simHandler;
     private Enviroment enviroment;
@@ -229,6 +233,29 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
             await Task.Yield();
             other.transform.position = position;
             other.transform.rotation = Quaternion.LookRotation(heading, Vector3.up);
+            var exZone = own.transform.Find("ExclusionZone");
+            if(exZone != null) exZone.gameObject.SetActive(true);
+            var pathPrediction = other.GetComponentInChildren<LineRenderer>();
+            if (pathPrediction != null) pathPrediction.enabled = false;
+
+            var meshRendererOwn = own.GetComponentInChildren<MeshRenderer>();
+            if (meshRendererOwn != null)
+            {
+                Destroy(meshRendererOwn.material);
+                meshRendererOwn.material = new Material(whiteAlphaMat);
+            }
+            var meshRendererOther = other.GetComponentInChildren<MeshRenderer>();
+            if (meshRendererOther != null)
+            {
+                Destroy(meshRendererOther.material);
+                meshRendererOther.material = new Material(whiteAlphaMat);
+            }
+            var lineRendererOwn = own.GetComponentInChildren<LineRenderer>();
+            if (lineRendererOwn != null)
+            {
+                Destroy(lineRendererOwn.material);
+                lineRendererOwn.material = new Material(redAlphaMat);
+            }
 
             for (int i = 1; i < ownData.Count; i++)
             {
@@ -258,6 +285,7 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
         HUD.DisableCollisionCam();
         Destroy(collisionPoint);
     }
+
 }
 
 public interface IColissionHandler
