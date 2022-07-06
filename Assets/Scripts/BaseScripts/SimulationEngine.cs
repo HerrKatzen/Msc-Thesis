@@ -157,8 +157,21 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
             HUD.SetOverlookingCam();
         }
 
-        if (DataLogger.Instance.SimData.TryGetValue(ownVesselName, out ownData))
+        if (DataLogger.Instance.SimData.TryGetValue(ownVesselName, out List<BaseVessel.DataBundle> ownShipData))
         {
+            ownData = new List<BaseVessel.DataBundle>(ownShipData.Count);
+            for(int i = 0; i < ownShipData.Count; i++)
+            {
+                //transforming global data to local for the collision predictor to use
+                var eta = new BaseVessel.Eta(ownShipData[i].eta.north - dataPlayer.AnimationDelta.z, ownShipData[i].eta.east - dataPlayer.AnimationDelta.x,
+                                                    ownShipData[i].eta.down, ownShipData[i].eta.roll, ownShipData[i].eta.pitch, ownShipData[i].eta.yaw);
+                var timeStamp = ownShipData[i].timeStamp;
+                var linearSpeed = ownShipData[i].linearSpeed;
+                var torqueSpeed = ownShipData[i].torqueSpeed;
+                var rudderAngle = ownShipData[i].rudderAngle;
+                var rudderCommand = ownShipData[i].rudderCommand;
+                ownData.Add(new BaseVessel.DataBundle(eta, linearSpeed, torqueSpeed, rudderAngle, rudderCommand, timeStamp));
+            }
             dataPlayer.StartAnimation();
         }
     }
@@ -199,36 +212,38 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
         pauseOnCollision = pause;
     }
 
-    public async void RaiseCollision(string vesselName, Vector3 position, float collisionTime)
+    public async void RaiseCollision(string vesselName, Vector3 position, Vector3 heading, float collisionTime)
     {
         if(pauseOnCollision)
         {
-            dataPlayer.PauseReplay();
             GameObject otherVessel, ownVessel;
             if (!allVesselGameobjects.TryGetValue(vesselName, out otherVessel)) return;
             if (!allVesselGameobjects.TryGetValue(ownVesselName, out ownVessel)) return;
 
+            dataPlayer.PauseReplay();
             collisionPoint = new GameObject("collisionPoint");
+            HUD.SetOverlookingCam();
             var other = Instantiate(otherVessel, collisionPoint.transform);
             var own = Instantiate(ownVessel, collisionPoint.transform);
             await Task.Yield();
             await Task.Yield();
             other.transform.position = position;
+            other.transform.rotation = Quaternion.LookRotation(heading, Vector3.up);
 
             for (int i = 1; i < ownData.Count; i++)
             {
                 if (ownData[i].timeStamp >= collisionTime)
                 {
-                    float lerp = (collisionTime - ownData[i].timeStamp) / (ownData[i].timeStamp - ownData[i - 1].timeStamp);
+                    float lerp = (ownData[i].timeStamp - collisionTime) / (ownData[i].timeStamp - ownData[i - 1].timeStamp);
                     Vector2 currentEN = new Vector2(ownData[i].eta.east, ownData[i].eta.north);
                     Vector2 previousEN = new Vector2(ownData[i - 1].eta.east, ownData[i - 1].eta.north);
                     Vector2 lerpedEN = Vector2.Lerp(previousEN, currentEN, lerp);
                     own.transform.position = new Vector3(lerpedEN.x, 0f, lerpedEN.y);
-                    var angle = Vector2.SignedAngle(new Vector2(0f, 1f), currentEN - previousEN);
-                    own.transform.rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    own.transform.rotation = Quaternion.LookRotation(new Vector3(currentEN.x - previousEN.x, 0f, currentEN.y - previousEN.y), Vector3.up);
+                    break;
                 }
             }
-
+            HUD.SetupCollisionCam(own, other);
             PopUpWithButton.Instance.PopupText($"Collision Detected with vessel: {vesselName}.\nCollision in {collisionTime - dataPlayer.Time} seconds.");
         }
         else
@@ -239,11 +254,13 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
 
     public void RemoveCollisionObjectsIfPresent()
     {
+        HUD.SetOverlookingCam();
+        HUD.DisableCollisionCam();
         Destroy(collisionPoint);
     }
 }
 
 public interface IColissionHandler
 {
-    public void RaiseCollision(string vesselName, Vector3 position, float time);
+    public void RaiseCollision(string vesselName, Vector3 position, Vector3 heading, float time);
 }

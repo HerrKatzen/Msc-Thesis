@@ -160,38 +160,40 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 
         for(int i = vesselsParent.childCount - 1; i >= 0; i--)
         {
-            DestroyImmediate(vesselsParent.GetChild(i));
+            DestroyImmediate(vesselsParent.GetChild(i).gameObject);
         }
         for (int i = waypointsParent.childCount - 1; i >= 0; i--)
         {
-            DestroyImmediate(waypointsParent.GetChild(i));
+            DestroyImmediate(waypointsParent.GetChild(i).gameObject);
         }
 
         foreach (var dp in dataPackages)
         {
             var instance = Instantiate(vesselDataPrefab, vesselsParent);
-            var VesselData = instance.GetComponent<VesselData>();
-            vessels.Add(VesselData);
-            VesselData.SetDataHandler(this);
-            VesselData.DataPackage = dp;
+            var vesselData = instance.GetComponent<VesselData>();
+            vessels.Add(vesselData);
+            vesselData.SetDataHandler(this);
+            vesselData.DataPackage = dp;
+            vesselData.SetVesselDataUI();
             ui.ownVesselNameSelector.options.Add(new TMP_Dropdown.OptionData() { text = dp.vesselName });
             if (dp.vesselName.Equals(_ownVesselName)) ui.ownVesselNameSelector.value = ui.ownVesselNameSelector.options.Count - 1;
 
-            ui.stepTime.text = _setupValuesData.stepTime.ToString();
-            ui.simTime.text = _setupValuesData.simTime.ToString();
-            ui.enviromentRho.text = _setupValuesData.enviromentRho.ToString();
-            ui.enviromentDepth.text = _setupValuesData.enviromentDepth.ToString();
-            ui.radarScanDistance.text = _setupValuesData.radarScanDistance.ToString();
-            ui.radarScanNoisePercent.text = _setupValuesData.radarScanNoisePercent.ToString();
-            ui.radarScanTime.text = _setupValuesData.radarScanTime.ToString();
-            ui.pathUpdateTime.text = _setupValuesData.pathUpdateTime.ToString();
-            ui.pathTimeLength.text = _setupValuesData.pathTimeLength.ToString();
-            ui.pathDataTimeLength.text = _setupValuesData.pathDataTimeLength.ToString();
-            ui.pathTurnRateAcceleration.text = _setupValuesData.pathTurnRateAcceleration.ToString();
-            ui.exclusionZoneFront.text = _setupValuesData.exclusionZoneFront.ToString();
-            ui.exclusionZoneSides.text = _setupValuesData.exclusionZoneSides.ToString();
-            ui.exclusionZoneBack.text = _setupValuesData.exclusionZoneBack.ToString();
         }
+        ui.stepTime.text = _setupValuesData.stepTime.ToString();
+        ui.simTime.text = _setupValuesData.simTime.ToString();
+        ui.enviromentRho.text = _setupValuesData.enviromentRho.ToString();
+        ui.enviromentDepth.text = _setupValuesData.enviromentDepth.ToString();
+        ui.radarScanDistance.text = _setupValuesData.radarScanDistance.ToString();
+        ui.radarScanNoisePercent.text = _setupValuesData.radarScanNoisePercent.ToString();
+        ui.radarScanTime.text = _setupValuesData.radarScanTime.ToString();
+        ui.pathUpdateTime.text = _setupValuesData.pathUpdateTime.ToString();
+        ui.pathTimeLength.text = _setupValuesData.pathTimeLength.ToString();
+        ui.pathDataTimeLength.text = _setupValuesData.pathDataTimeLength.ToString();
+        ui.pathTurnRateAcceleration.text = _setupValuesData.pathTurnRateAcceleration.ToString();
+        ui.exclusionZoneFront.text = _setupValuesData.exclusionZoneFront.ToString();
+        ui.exclusionZoneSides.text = _setupValuesData.exclusionZoneSides.ToString();
+        ui.exclusionZoneBack.text = _setupValuesData.exclusionZoneBack.ToString();
+
         ui.ownVesselNameSelector.RefreshShownValue();
     }
 

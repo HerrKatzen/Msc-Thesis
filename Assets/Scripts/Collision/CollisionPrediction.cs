@@ -33,20 +33,21 @@ public class CollisionPrediction : MonoBehaviour
         foreach (var vessel in VesselDatabase.Instance.vesselDataMap)
         {
             if (vessel.Key.Equals(vesselName)) continue;
-
-            VesselMeasurementData collision = PredictCollision(ownPathData, vessel.Value.predictedPath);
+            Vector3 heading;
+            VesselMeasurementData collision = PredictCollision(ownPathData, vessel.Value.predictedPath, out heading);
             if(collision != null)
             {
                 Debug.Log($"Collision Detected {collision.timeStamp - currentTime} seconds ahead of collision!" +
                     $"\ncurrent time: {currentTime}, time of collision: {collision.timeStamp}");
 
-                colissionHandler.RaiseCollision(vessel.Key, collision.EUN, collision.timeStamp);
+                colissionHandler.RaiseCollision(vessel.Key, collision.EUN, heading, collision.timeStamp);
             }
         }
     }
 
-    public VesselMeasurementData PredictCollision(List<BaseVessel.DataBundle> ownPathData, List<VesselMeasurementData> predictedPath)
+    public VesselMeasurementData PredictCollision(List<BaseVessel.DataBundle> ownPathData, List<VesselMeasurementData> predictedPath, out Vector3 heading)
     {
+        heading = Vector3.forward;
         if (ownPathData == null || predictedPath == null) return null;
 
         maxDistance = Mathf.Max(length * clearanceOnSides, length * clearanceFrontShip, length * clearanceBackShip) + length / 2f;
@@ -77,6 +78,14 @@ public class CollisionPrediction : MonoBehaviour
             {
                 if (LameCurveTest(lerpedEN, mesuredEN, ownPathData[i].eta.yaw))
                 {
+                    if(j < predictedPath.Count - 1)
+                    {
+                        heading = predictedPath[j + 1].EUN - predictedPath[j].EUN;
+                    }
+                    else if(j > 0)
+                    {
+                        heading = predictedPath[j].EUN - predictedPath[j - 1].EUN;
+                    }
                     return predictedPath[j];
                 }
             }

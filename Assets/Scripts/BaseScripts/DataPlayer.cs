@@ -26,7 +26,7 @@ public class DataPlayer : MonoBehaviour
     private int numberOfSteps;
     private Dictionary<string, GameObject> vessels;
     private Dictionary<string, List<GameObject>> points;
-    private Vector3 animationDelta;
+    public Vector3 AnimationDelta { get; private set; }
 
     [ContextMenu("Replay All Data")]
     public void ReplayAllData()
@@ -92,26 +92,26 @@ public class DataPlayer : MonoBehaviour
 
             numberOfSteps = (int)Mathf.Min(numberOfSteps, vessel.Value.Count);
         }
-        animationDelta = new Vector3((DataLogger.Instance.minEast + DataLogger.Instance.maxEast) / 2f, 
+        AnimationDelta = new Vector3((DataLogger.Instance.minEast + DataLogger.Instance.maxEast) / 2f, 
                                     0f, 
                                     (DataLogger.Instance.minNorth + DataLogger.Instance.maxNorth) / 2f);
 
         //for the animation we transform everything as close to 0;0 as we can
         foreach (var g in vessels.Values)
         {
-            g.transform.position -= animationDelta;
+            g.transform.position -= AnimationDelta;
         }
         foreach (var l in points.Values)
         {
             foreach (var g in l)
             {
-                g.transform.position -= animationDelta;
+                g.transform.position -= AnimationDelta;
             }
         }
         await Task.Yield();
         await Task.Yield();
 
-        HUD.InitHudController(vessels, animationDelta);
+        HUD.InitHudController(vessels, AnimationDelta);
         HUD.SetReplaySpeedText(ReplaySpeed);
         return vessels;
     }
@@ -147,7 +147,7 @@ public class DataPlayer : MonoBehaviour
 
             if (vessels.TryGetValue(vessel.Key, out GameObject go))
             {
-                go.transform.position = Vector3.Lerp(currentPos, nextPos, lerp) - animationDelta;
+                go.transform.position = Vector3.Lerp(currentPos, nextPos, lerp) - AnimationDelta;
                 go.transform.localRotation = Quaternion.Lerp(currRot, nextRot, lerp);
             }
 

@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class HUDController : MonoBehaviour
 {
@@ -12,11 +13,14 @@ public class HUDController : MonoBehaviour
     private Transform scrollViewParent;
     [SerializeField]
     private GameObject scrollElementPrefab;
+    [SerializeField]
+    private Button collisionCamButton;
 
     private GameObject exclusionZone;
     private GameObject expectedPathLineHolder;
     private GameObject actualPathLineHolder;
     private Transform overLookingCam;
+    private Transform collisionCam;
 
     public void InitHudController(Dictionary<string, GameObject> vessels, Vector3 animationDelta)
     {
@@ -81,6 +85,9 @@ public class HUDController : MonoBehaviour
         overLookingCam = overLookingCamObject.transform;
         overLookingCam.position = new Vector3(0f, y * 1.1f, 0f);
         overLookingCam.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        var collisionCamObject = new GameObject("CollisionCamera");
+        collisionCam = collisionCamObject.transform;
     }
 
     public void SetExclusionZone(GameObject exZone)
@@ -127,5 +134,31 @@ public class HUDController : MonoBehaviour
             Destroy(scrollViewParent.GetChild(i).gameObject);
         }
         Destroy(overLookingCam.gameObject);
+        collisionCamButton.interactable = false;
+    }
+
+    public void SetCollisionCam()
+    {
+        Camera.main.transform.parent = collisionCam;
+        Camera.main.transform.localPosition = Vector3.zero;
+        Camera.main.transform.localRotation = Quaternion.identity;
+    }
+
+    internal void SetupCollisionCam(GameObject own, GameObject other)
+    {
+        var ownTop = own.transform.Find("CamTop");
+        var otherTop = other.transform.Find("CamTop");
+        float distance = Vector3.Distance(ownTop.position, otherTop.position);
+        float y = Mathf.Sqrt(distance * distance - (distance / 2f) * (distance / 2f));
+        Vector3 midPoint = Vector3.Lerp(ownTop.position, otherTop.position, 0.5f);
+
+        collisionCam.transform.position = new Vector3(midPoint.x, midPoint.y + y, midPoint.z);
+        collisionCam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        collisionCamButton.interactable = true;
+    }
+
+    internal void DisableCollisionCam()
+    {
+        collisionCamButton.interactable = false;
     }
 }
