@@ -133,7 +133,7 @@ public class HUDController : MonoBehaviour
         {
             Destroy(scrollViewParent.GetChild(i).gameObject);
         }
-        Destroy(overLookingCam.gameObject);
+        if(overLookingCam != null) Destroy(overLookingCam.gameObject);
         collisionCamButton.interactable = false;
     }
 

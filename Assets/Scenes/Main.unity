@@ -3889,7 +3889,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 172265930}
   m_OnClick:
     m_PersistentCalls:
@@ -12012,6 +12012,8 @@ MonoBehaviour:
     exclusionZoneFront: {fileID: 342137306}
     exclusionZoneBack: {fileID: 1438588126}
     exclusionZoneSides: {fileID: 2027864649}
+  startButton: {fileID: 1279126764}
+  exportButton: {fileID: 172265929}
   OnEditClickedEvent:
     m_PersistentCalls:
       m_Calls:
@@ -31287,7 +31289,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1279126765}
   m_OnClick:
     m_PersistentCalls:

@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using System;
 using SimpleJSON;
 using System.IO;
+using UnityEngine.UI;
 
 public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 {
@@ -25,6 +26,10 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     private GameObject waypointPrefab;
     [SerializeField]
     private VesselDataUI ui;
+    [SerializeField]
+    private Button startButton;
+    [SerializeField]
+    private Button exportButton;
 
     public UnityEvent OnEditClickedEvent;
 
@@ -117,7 +122,9 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         {
             waypointsParent.GetChild(i).GetComponent<WaypointUI>().Delete();
         }
-        ResetUI();
+        ResetUI(); 
+        startButton.interactable = true;
+        exportButton.interactable = true;
     }
 
     public void SaveSimSetupValues()
@@ -242,6 +249,11 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         }
         ui.ownVesselNameSelector.RefreshShownValue();
         editMain.SetActive(false);
+        if(vessels.Count == 0)
+        {
+            startButton.interactable = false;
+            exportButton.interactable = false;
+        }
     }
 
     public void OnEditClicked(VesselData vesselData)
