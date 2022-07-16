@@ -202,6 +202,8 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         ui.exclusionZoneBack.text = _setupValuesData.exclusionZoneBack.ToString();
 
         ui.ownVesselNameSelector.RefreshShownValue();
+        startButton.interactable = true;
+        exportButton.interactable = true;
     }
 
     private void ResetUI()

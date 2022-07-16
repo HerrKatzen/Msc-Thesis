@@ -55,7 +55,7 @@ public class ShipController : MonoBehaviour
             dragCoefTimesArea += area.GetResistanceValue(waterFlowDirection);
         }
         dragCoefTimesArea *= dragCoeficient;
-        var dragForceMagnitude = (dragCoefTimesArea * massDensity * flowSpeed) / 2f;
+        var dragForceMagnitude = (dragCoefTimesArea * massDensity * flowSpeed * flowSpeed) / 2f;
         Vector3 dragForce = -1f * waterFlowDirection * dragForceMagnitude;
         
         //calculating rotor speed and direction

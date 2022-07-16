@@ -22,6 +22,13 @@ public class ThorFossenSimulationHandler : MonoBehaviour
 
     public void SetupSimulation(List<BaseVessel> allVessels, float _stepTime, float _timeToSimulate, Enviroment _enviroment)
     {
+        if(vessels != null)
+        {
+            foreach (var vessel in vessels)
+            {
+                DataLogger.Instance.ClearVesselData(vessel.vesselName);
+            }
+        }
         vessels = allVessels;
         simulationTimeStep = _stepTime;
         timeToSimulate = _timeToSimulate;
@@ -52,7 +59,7 @@ public class ThorFossenSimulationHandler : MonoBehaviour
                 DataLogger.Instance.LogVesselData(vessel.vesselName, new BaseVessel.DataBundle(vessel.eta, vessel.linSpeed, vessel.torSpeed, vessel.rudAngle, controlData.u_control, step));
             }
             count++;
-            if(count % 100 == 0)
+            if(count % 1000 == 0)
             {
                 await Task.Yield();
             }
