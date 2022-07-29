@@ -51,12 +51,12 @@ namespace VesselSimulator.UI
 
         public void AddNewShip()
         {
-            ResetUI();
             var instance = Instantiate(vesselDataPrefab, vesselsParent);
             var vesselData = instance.GetComponent<VesselData>();
             vessels.Add(vesselData);
             vesselData.SetDataHandler(this);
             vesselData.SetEditMode();
+            ResetUI();
         }
 
         public void AddNewWaypoint()
@@ -232,13 +232,6 @@ namespace VesselSimulator.UI
             ui.speedY.text = "";
             ui.surgeForce.text = "";
 
-            if (vessels != null)
-            {
-                foreach (var v in vessels)
-                {
-                    v.SetOverlayDone();
-                }
-            }
             otherSettingsButton.interactable = true;
         }
 

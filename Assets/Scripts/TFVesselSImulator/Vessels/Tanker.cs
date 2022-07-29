@@ -31,8 +31,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
         public override void Init(StartPoint startPoint, Enviroment _enviroment)
         {
             eta = new Eta(startPoint.eta);
-            linSpeed = startPoint.linearSpeed;
-            torSpeed = startPoint.torqueSpeed;
+            linSpeed = new float[3] { startPoint.linearSpeed.x, startPoint.linearSpeed.y, startPoint.linearSpeed.z };
+            torSpeed = new float[3] { startPoint.torqueSpeed.x, startPoint.torqueSpeed.y, startPoint.torqueSpeed.z };
             enviroment = _enviroment;
             speed = 0f;
         }
@@ -48,8 +48,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             //current velocities
             float u_c = speed * Mathf.Cos(enviroment.beta_current - eta.yaw);
             float v_c = speed * Mathf.Sin(enviroment.beta_current - eta.yaw);
-            Vector3 nu_c = new Vector3(u_c, v_c, 0f);
-            Vector3 nu_r = linSpeed - nu_c;
+            float[] nu_c = new float[3] { u_c, v_c, 0f };
+            float[] nu_r = Mat3x3.Sub3(linSpeed, nu_c);
 
             float beta = 0f;
             float u_r = nu_r[0];
@@ -92,8 +92,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
 
             //Dimensional state derivatives
 
-            Vector3 linSpeedDot = new Vector3(gX / m11_mod, gY / m22_mod, 0f);
-            Vector3 torSpeedDot = new Vector3(0f, 0f, gLN / (Mathf.Pow(length, 2f) * m33_mod));
+            float[] linSpeedDot = new float[3] { gX / m11_mod, gY / m22_mod, 0f };
+            float[] torSpeedDot = new float[3] { 0f, 0f, gLN / (Mathf.Pow(length, 2f) * m33_mod) };
 
             //rudder angle saturation
             if (Mathf.Abs(rudAngle) >= rudMax * Mathf.PI / 180f)
@@ -108,8 +108,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             }
 
             //Forward Euler integration [k+1]
-            linSpeed += sampleTime * linSpeedDot;
-            torSpeed += sampleTime * torSpeedDot;
+            linSpeed = Mat3x3.Add3(linSpeed, Mat3x3.Mult3(linSpeedDot, sampleTime));
+            torSpeed = Mat3x3.Add3(torSpeed, Mat3x3.Mult3(torSpeedDot, sampleTime));
             rudAngle += sampleTime * rudDot;
         }
 

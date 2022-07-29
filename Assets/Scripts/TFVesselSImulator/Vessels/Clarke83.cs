@@ -49,8 +49,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
         public override void Init(StartPoint startPoint, Enviroment _enviroment)
         {
             eta = new Eta(startPoint.eta);
-            linSpeed = startPoint.linearSpeed;
-            torSpeed = startPoint.torqueSpeed;
+            linSpeed = new float[3] { startPoint.linearSpeed.x, startPoint.linearSpeed.y, startPoint.linearSpeed.z };
+            torSpeed = new float[3] { startPoint.torqueSpeed.x, startPoint.torqueSpeed.y, startPoint.torqueSpeed.z };
             wayPoints = startPoint.NEWayPoints;
             enviroment = _enviroment;
             length = 50f;
@@ -61,8 +61,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             speed = 0f;
             betaVCurr = 0f;
             R66 = length > 100f ? 0.27f * length : 0.25f * length;
-            //linSpeed = new Vector3(2f, 0f, 0f);
-            //torSpeed = Vector3.zero;
+            //linSpeed = new float[3]{2f, 0f, 0f);
+            //torSpeed = float[].zero;
 
             eIntegral = 0f;
             wn = 0.5f;
@@ -110,11 +110,11 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             //current velocities
             float u_c = speed * Mathf.Cos(betaVCurr - eta.yaw);
             float v_c = speed * Mathf.Sin(betaVCurr - eta.yaw);
-            Vector3 currLinSpeed = new Vector3(u_c, v_c, 0f);
-            Vector3 currTorSpeed = Vector3.zero;
-            Vector3 relLinSpeed = linSpeed - currLinSpeed;
-            Vector3 relTorSpeed = torSpeed - currTorSpeed;
-            float relSpeed = Mathf.Sqrt(relLinSpeed.x * relLinSpeed.x + relLinSpeed.y * relLinSpeed.y);
+            float[] currLinSpeed = new float[] { u_c, v_c, 0f };
+            float[] currTorSpeed = new float[] { 0f, 0f, 0f };
+            float[] relLinSpeed = Mat3x3.Sub3(linSpeed, currLinSpeed);
+            float[] relTorSpeed = Mat3x3.Sub3(torSpeed, currTorSpeed);
+            float relSpeed = Mathf.Sqrt(relLinSpeed[0] * relLinSpeed[0] + relLinSpeed[1] * relLinSpeed[1]);
 
             //rudder command and actual rudder angle
             float delta_c = u_control;
@@ -132,23 +132,23 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             float tau1 = (1f - t_deduction) * T - Xdd * Mathf.Sin(delta_R) * Mathf.Sin(delta_R);
             float tau2 = -Yd * Mathf.Sin(2f * delta_R);
             float tau6 = -Nd * Mathf.Sin(2f * delta_R);
-            Vector3 tau = new Vector3(tau1, tau2, tau6);
+            float[] tau = new float[3] { tau1, tau2, tau6 };
             //linear maneuvering model
             float T_surge = length;
             float xg = 0f;
             //3-DOF ship model
             systemMatrices = ComputeSystemMatrices(relSpeed, length, beam, draft, blockCoef, R66, xg, T_surge);
             float[,] Minv = Mat3x3.MultInverse(systemMatrices.M);
-            Vector3 nu3 = new Vector3(relLinSpeed.x, relLinSpeed.y, relTorSpeed.z);
-            Vector3 nu3_dot = Vector3.zero;
+            float[] nu3 = new float[3] { relLinSpeed[0], relLinSpeed[1], relTorSpeed[2] };
+            float[] nu3_dot = Mat3x3.ZERO3F;
             if (Minv != null)
             {
-                nu3_dot = Mat3x3.Matmul(Minv, tau - Mat3x3.Matmul(systemMatrices.N, nu3));
+                nu3_dot = Mat3x3.Matmul(Minv, Mat3x3.Sub3(tau, Mat3x3.Matmul(systemMatrices.N, nu3)));
             }
 
             //6-DOF ship model
-            Vector3 calcLinSpeed = new Vector3(nu3_dot.x, nu3_dot.y, 0f);
-            Vector3 calcTorSpeed = new Vector3(0f, 0f, nu3_dot.z);
+            float[] calcLinSpeed = new float[3] { nu3_dot[0], nu3_dot[1], 0f };
+            float[] calcTorSpeed = new float[3] { 0f, 0f, nu3_dot[2] };
 
             //rudder angle saturation
             delta = Mathf.Clamp(delta, -rudMax * Mathf.Deg2Rad, rudMax * Mathf.Deg2Rad);
@@ -158,8 +158,8 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
 
             //forward euler integration [k+1]
             delta += sampleTime * delta_dot;
-            linSpeed += sampleTime * calcLinSpeed;
-            torSpeed += sampleTime * calcTorSpeed;
+            linSpeed = Mat3x3.Add3(linSpeed, Mat3x3.Mult3(calcLinSpeed, sampleTime));
+            torSpeed = Mat3x3.Add3(torSpeed, Mat3x3.Mult3(calcTorSpeed, sampleTime));
 
             rudAngle = delta;
             eta = AttitudeEuler(sampleTime);
@@ -220,7 +220,7 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
         protected override ControlData HeadingAutopilot(float sampleTime)
         {
             float psi = eta.yaw;
-            float r = torSpeed.z;
+            float r = torSpeed[2];
             float e_psi = psi - psi_d;
             float e_r = r - r_d;
             float psi_ref = REF * Mathf.PI / 180f;

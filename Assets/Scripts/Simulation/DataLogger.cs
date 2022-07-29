@@ -266,6 +266,26 @@ namespace VesselSimulator.Simulation
             return true;
         }
 
+        [ContextMenu("Save Column Data")]
+        public void SaveColumnData()
+        {
+            if (!Directory.Exists(Path.Combine(Application.persistentDataPath, simDataFolder)))
+            {
+                Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, simDataFolder));
+            }
+            var path = Path.Combine(Application.persistentDataPath, simDataFolder, "DataLog.txt");
+            if (File.Exists(path))
+                File.Delete(path);
+            string text = "";
+            foreach (var data in SimData)
+            {
+                foreach (var d in data.Value)
+                {
+                    text += d.eta.north + ", ";
+                }
+            }
+            File.WriteAllText(path, text);
+        }
         public void DeleteFile(string fileName)
         {
             var path = Path.Combine(Application.persistentDataPath, simDataFolder);

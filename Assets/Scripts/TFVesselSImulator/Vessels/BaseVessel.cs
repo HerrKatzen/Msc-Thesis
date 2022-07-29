@@ -32,12 +32,12 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
         /// nu [1,2,3]
         /// </summary>
         [HideInInspector]
-        public Vector3 linSpeed;
+        public float[] linSpeed = new float[3];
         /// <summary>
         /// nu [4,5,6]
         /// </summary>
         [HideInInspector]
-        public Vector3 torSpeed;
+        public float[] torSpeed = new float[3];
 
         private void OnEnable()
         {
@@ -73,21 +73,21 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
 
         public Eta AttitudeEuler(float deltaT)
         {
-            Vector3 p_dot = Mat3x3.Matmul(Rzyx(eta.roll, eta.pitch, eta.yaw), linSpeed);
-            Vector3 v_dot = Mat3x3.Matmul(Tzyx(eta.roll, eta.pitch), torSpeed);
+            float[] p_dot = Mat3x3.Matmul(Rzyx(eta.roll, eta.pitch, eta.yaw), linSpeed);
+            float[] v_dot = Mat3x3.Matmul(Tzyx(eta.roll, eta.pitch), torSpeed);
 
             //calculate vector for time frame
-            p_dot = p_dot * deltaT;
-            v_dot = v_dot * deltaT;
+            p_dot = Mat3x3.Mult3(p_dot, deltaT);
+            v_dot = Mat3x3.Mult3(v_dot, deltaT);
 
             Eta result = new Eta();
             // recalculate position and rotation
-            result.north = eta.north + p_dot.x;
-            result.east = eta.east + p_dot.y;
-            result.down = eta.down + p_dot.z;
-            result.roll = eta.roll + v_dot.x;
-            result.pitch = eta.pitch + v_dot.y;
-            result.yaw = eta.yaw + v_dot.z;
+            result.north = eta.north + p_dot[0];
+            result.east = eta.east + p_dot[1];
+            result.down = eta.down + p_dot[2];
+            result.roll = eta.roll + v_dot[0];
+            result.pitch = eta.pitch + v_dot[1];
+            result.yaw = eta.yaw + v_dot[2];
 
             return result;
         }
@@ -97,18 +97,18 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             return (angle + Mathf.PI) % (2f * Mathf.PI) - Mathf.PI;
         }
 
-        public static float[,] Smtrx(Vector3 a)
+        public static float[,] Smtrx(float[] a)
         {
-            return new float[3, 3] { { 0f, -a.z, a.y },
-                                 { a.z, 0f, -a.x },
-                                 { -a.y, a.x, 0f } };
+            return new float[3, 3] { { 0f, -a[2], a[1] },
+                                 { a[2], 0f, -a[0] },
+                                 { -a[1], a[0], 0f } };
         }
 
         /// <summary>
         /// H = [eye(3)     S'
         ///     zeros(3,3) eye(3) ]
         /// </summary>
-        public static float[,] Hmtrx(Vector3 r)
+        public static float[,] Hmtrx(float[] r)
         {
             float[,] S = Smtrx(r);
             return new float[6, 6] { { 1f, 0f, 0f, S[0,0], S[1,0], S[2,0] },
@@ -203,16 +203,16 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
         public class DataBundle
         {
             public Eta eta;
-            public Vector3 linearSpeed;
-            public Vector3 angularSpeed;
+            public float[] linearSpeed;
+            public float[] angularSpeed;
             public float rudderAngle;
             public float rudderCommand;
             public float timeStamp;
-            public DataBundle(Eta _eta, Vector3 linSpeed, Vector3 torSpeed, float rudA, float rudC, float time)
+            public DataBundle(Eta _eta, float[] linSpeed, float[] torSpeed, float rudA, float rudC, float time)
             {
                 eta = new Eta(_eta);
-                linearSpeed = new Vector3(linSpeed.x, linSpeed.y, linSpeed.z);
-                angularSpeed = new Vector3(torSpeed.x, torSpeed.y, torSpeed.z);
+                linearSpeed = new float[3] { linSpeed[0], linSpeed[1], linSpeed[2] };
+                angularSpeed = new float[3] { torSpeed[0], torSpeed[1], torSpeed[2] };
                 rudderAngle = rudA;
                 rudderCommand = rudC;
                 timeStamp = time;
@@ -234,15 +234,15 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
                 eta.yaw = etaNode["yaw"].AsFloat;
 
                 JSONNode linearSpeedNode = bundleDataNode["linearSpeed"];
-                linearSpeed = new Vector3(linearSpeedNode["x"].AsFloat, linearSpeedNode["y"].AsFloat, linearSpeedNode["z"].AsFloat);
+                linearSpeed = new float[3] { linearSpeedNode["x"].AsFloat, linearSpeedNode["y"].AsFloat, linearSpeedNode["z"].AsFloat };
                 JSONNode torqueSpeedNode = bundleDataNode["torqueSpeed"];
-                angularSpeed = new Vector3(torqueSpeedNode["x"].AsFloat, torqueSpeedNode["y"].AsFloat, torqueSpeedNode["z"].AsFloat);
+                angularSpeed = new float[3] { torqueSpeedNode["x"].AsFloat, torqueSpeedNode["y"].AsFloat, torqueSpeedNode["z"].AsFloat };
             }
 
             public new string ToString()
             {
                 return $"Time: {timeStamp}\nNED: {eta.north}, {eta.east}, {eta.down}\nATT: {eta.roll}, {eta.pitch}, {eta.yaw}\nLinV: " +
-                    $"[{linearSpeed.x}, {linearSpeed.y}, {linearSpeed.z}]\nTorV: [{angularSpeed.x}, {angularSpeed.y}, {angularSpeed.z}]" +
+                    $"[{linearSpeed[0]}, {linearSpeed[1]}, {linearSpeed[2]}]\nTorV: [{angularSpeed[0]}, {angularSpeed[1]}, {angularSpeed[2]}]" +
                     $"\nRudC: {rudderCommand}\nRudA: {rudderAngle}";
             }
 
@@ -257,13 +257,13 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
                 etaNode["yaw"] = eta.yaw;
 
                 JSONNode linearSpeedNode = new JSONObject();
-                linearSpeedNode["x"] = linearSpeed.x;
-                linearSpeedNode["y"] = linearSpeed.y;
-                linearSpeedNode["z"] = linearSpeed.z;
+                linearSpeedNode["x"] = linearSpeed[0];
+                linearSpeedNode["y"] = linearSpeed[1];
+                linearSpeedNode["z"] = linearSpeed[2];
                 JSONNode torqueSpeedNode = new JSONObject();
-                torqueSpeedNode["x"] = angularSpeed.x;
-                torqueSpeedNode["y"] = angularSpeed.y;
-                torqueSpeedNode["z"] = angularSpeed.z;
+                torqueSpeedNode["x"] = angularSpeed[0];
+                torqueSpeedNode["y"] = angularSpeed[1];
+                torqueSpeedNode["z"] = angularSpeed[2];
 
                 JSONNode bundleDataNode = new JSONObject();
                 bundleDataNode["eta"] = etaNode;
