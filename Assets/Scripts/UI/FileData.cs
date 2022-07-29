@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FileLoadData : MonoBehaviour
+public class FileData : MonoBehaviour
 {
     [SerializeField]
     private TextMeshProUGUI fileName;

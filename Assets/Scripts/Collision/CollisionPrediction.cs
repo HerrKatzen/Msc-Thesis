@@ -50,7 +50,7 @@ public class CollisionPrediction : MonoBehaviour
         heading = Vector3.forward;
         if (ownPathData == null || predictedPath == null) return null;
 
-        maxDistance = Mathf.Max(length * clearanceOnSides, length * clearanceFrontShip, length * clearanceBackShip) + length / 2f;
+        maxDistance = (Mathf.Max(length * clearanceOnSides, length * clearanceFrontShip, length * clearanceBackShip) + length / 2f) * Mathf.Sqrt(2f);
         int i = 1, j = 0;
         //Ship data time stamp i will be larger then predicted path j, but ship data i-1 will be smaller
         while(ownPathData[i].timeStamp > predictedPath[j + 1].timeStamp)
@@ -64,7 +64,7 @@ public class CollisionPrediction : MonoBehaviour
             {
                 i++;
             }
-            if (i >= ownPathData.Count) break;
+            if (i >= ownPathData.Count) return null;
 
             float lerp = (predictedPath[j].timeStamp - ownPathData[i].timeStamp) / (ownPathData[i].timeStamp - ownPathData[i - 1].timeStamp);
             Vector2 currentEN = new Vector2(ownPathData[i].eta.east, ownPathData[i].eta.north);
@@ -72,9 +72,9 @@ public class CollisionPrediction : MonoBehaviour
             Vector2 lerpedEN = Vector2.Lerp(previousEN, currentEN, lerp);
             Vector2 mesuredEN = new Vector2(predictedPath[j].EUN.x, predictedPath[j].EUN.z);
 
-            //we only calculate the costly Lamé Curve Test if the other ship is inside a critical distance - 2 here will always be larger than
-            //the actual lamé curve test. Proof in the thesis for lim = TODO
-            if (Vector2.Distance(lerpedEN, mesuredEN) < maxDistance * 2f)
+            //we only calculate the costly Lamé Curve Test if the other ship is inside a critical distance that will always be larger than
+            //the actual lamé curve test. Proof in the thesis
+            if (Vector2.Distance(lerpedEN, mesuredEN) <= maxDistance)
             {
                 if (LameCurveTest(lerpedEN, mesuredEN, ownPathData[i].eta.yaw))
                 {

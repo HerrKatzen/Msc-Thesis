@@ -9,6 +9,15 @@ public class TestRunner : MonoBehaviour
     [SerializeField]
     private PathPrediction pathPrediction;
 
+    [ContextMenu("debug display vesseldatabase dumb vessel measurements")]
+    public void DisplayPathPrediction()
+    {
+        if(VesselDatabase.Instance.vesselDataMap.TryGetValue("DumbVessel", out var value))
+        {
+            windowGraph.DisplayShipMesurementData(value.pathData);
+        }
+    }
+
     [ContextMenu("Display Path And Predicted Path Using Half Path")]
     public void DisplayPathAndPredictedPathUsingHalfPath()
     {

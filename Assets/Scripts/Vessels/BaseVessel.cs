@@ -202,7 +202,7 @@ public abstract class BaseVessel : MonoBehaviour
     {
         public Eta eta;
         public Vector3 linearSpeed;
-        public Vector3 torqueSpeed;
+        public Vector3 angularSpeed;
         public float rudderAngle;
         public float rudderCommand;
         public float timeStamp;
@@ -210,7 +210,7 @@ public abstract class BaseVessel : MonoBehaviour
         {
             eta = new Eta(_eta);
             linearSpeed = new Vector3(linSpeed.x, linSpeed.y, linSpeed.z);
-            torqueSpeed = new Vector3(torSpeed.x, torSpeed.y, torSpeed.z);
+            angularSpeed = new Vector3(torSpeed.x, torSpeed.y, torSpeed.z);
             rudderAngle = rudA;
             rudderCommand = rudC;
             timeStamp = time;
@@ -234,13 +234,13 @@ public abstract class BaseVessel : MonoBehaviour
             JSONNode linearSpeedNode = bundleDataNode["linearSpeed"];
             linearSpeed = new Vector3(linearSpeedNode["x"].AsFloat, linearSpeedNode["y"].AsFloat, linearSpeedNode["z"].AsFloat);
             JSONNode torqueSpeedNode = bundleDataNode["torqueSpeed"];
-            torqueSpeed = new Vector3(torqueSpeedNode["x"].AsFloat, torqueSpeedNode["y"].AsFloat, torqueSpeedNode["z"].AsFloat);
+            angularSpeed = new Vector3(torqueSpeedNode["x"].AsFloat, torqueSpeedNode["y"].AsFloat, torqueSpeedNode["z"].AsFloat);
         }
 
         public new string ToString()
         {
             return $"Time: {timeStamp}\nNED: {eta.north}, {eta.east}, {eta.down}\nATT: {eta.roll}, {eta.pitch}, {eta.yaw}\nLinV: " +
-                $"[{linearSpeed.x}, {linearSpeed.y}, {linearSpeed.z}]\nTorV: [{torqueSpeed.x}, {torqueSpeed.y}, {torqueSpeed.z}]" +
+                $"[{linearSpeed.x}, {linearSpeed.y}, {linearSpeed.z}]\nTorV: [{angularSpeed.x}, {angularSpeed.y}, {angularSpeed.z}]" +
                 $"\nRudC: {rudderCommand}\nRudA: {rudderAngle}";
         }
 
@@ -259,9 +259,9 @@ public abstract class BaseVessel : MonoBehaviour
             linearSpeedNode["y"] = linearSpeed.y;
             linearSpeedNode["z"] = linearSpeed.z;
             JSONNode torqueSpeedNode = new JSONObject();
-            torqueSpeedNode["x"] = torqueSpeed.x;
-            torqueSpeedNode["y"] = torqueSpeed.y;
-            torqueSpeedNode["z"] = torqueSpeed.z;
+            torqueSpeedNode["x"] = angularSpeed.x;
+            torqueSpeedNode["y"] = angularSpeed.y;
+            torqueSpeedNode["z"] = angularSpeed.z;
 
             JSONNode bundleDataNode = new JSONObject();
             bundleDataNode["eta"] = etaNode;

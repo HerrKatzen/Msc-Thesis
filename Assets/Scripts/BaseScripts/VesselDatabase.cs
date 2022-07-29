@@ -7,7 +7,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
     [Tooltip("draws the path for the vessels.\nCaution! can be heavy on computation if there are lot of path points")]
     public bool drawPredictedPaths;
     public GameObject pathPrefab;
-    public Dictionary<string, VesselData> vesselDataMap = new Dictionary<string, VesselData>();
+    public Dictionary<string, VesselDataLog> vesselDataMap = new Dictionary<string, VesselDataLog>();
 
     private List<GameObject> pathObectsPool = new List<GameObject>();
     private float pathTimeLenght = 120f;
@@ -48,7 +48,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
         }
     }
 
-    private IEnumerator UpdatePathRendering(VesselData vessel, int i)
+    private IEnumerator UpdatePathRendering(VesselDataLog vessel, int i)
     {
         if (pathObectsPool.Count <= i)
         {
@@ -72,19 +72,19 @@ public class VesselDatabase : Singleton<VesselDatabase>
     /// </summary>
     public void AddVesselPathDataPoint(string vessel, VesselMeasurementData dataPoint)
     {
-        if(vesselDataMap.TryGetValue(vessel, out VesselData vesselData))
+        if(vesselDataMap.TryGetValue(vessel, out VesselDataLog vesselData))
         {
             vesselData.pathData.Add(dataPoint);
         }
         else
         {
-            vesselDataMap.Add(vessel, new VesselData(dataPoint, turnRateAcceleration, pathTimeLenght, pathDataTimeLenght));
+            vesselDataMap.Add(vessel, new VesselDataLog(dataPoint, turnRateAcceleration, pathTimeLenght, pathDataTimeLenght));
         }
     }
 
     public void ResetDatabase()
     {
-        vesselDataMap = new Dictionary<string, VesselData>();
+        vesselDataMap = new Dictionary<string, VesselDataLog>();
         var temp = drawPredictedPaths;
         drawPredictedPaths = false;
         UpdatePredictedPaths();
@@ -92,7 +92,7 @@ public class VesselDatabase : Singleton<VesselDatabase>
     }
 
     [System.Serializable]
-    public class VesselData
+    public class VesselDataLog
     {
         //the current known path of the vessel
         public List<VesselMeasurementData> pathData;
@@ -101,30 +101,30 @@ public class VesselDatabase : Singleton<VesselDatabase>
         //predicted path of the ship - its updated by the database handler
         public List<VesselMeasurementData> predictedPath;
 
-        public VesselData() 
+        public VesselDataLog() 
         {
             pathData = new List<VesselMeasurementData>();
             pathPrediction = new PathPrediction();
             pathPrediction.turnRateAcceleration = 0f;
-            pathPrediction.timeTreshold = 20f;
+            pathPrediction.timeThreshold = 20f;
             pathPrediction.predictionPathLenghtInTime = 180f;
         }
-        public VesselData(VesselMeasurementData dataPoint)
+        public VesselDataLog(VesselMeasurementData dataPoint)
         {
             pathData = new List<VesselMeasurementData>();
             pathData.Add(dataPoint);
             pathPrediction = new PathPrediction();
             pathPrediction.turnRateAcceleration = 0f;
-            pathPrediction.timeTreshold = 20f;
+            pathPrediction.timeThreshold = 20f;
             pathPrediction.predictionPathLenghtInTime = 180f;
         }
-        public VesselData(VesselMeasurementData dataPoint, float turnRateAcceleration, float timeLength, float dataTimeLength)
+        public VesselDataLog(VesselMeasurementData dataPoint, float turnRateAcceleration, float timeLength, float dataTimeLength)
         {
             pathData = new List<VesselMeasurementData>();
             pathData.Add(dataPoint);
             pathPrediction = new PathPrediction();
             pathPrediction.turnRateAcceleration = turnRateAcceleration;
-            pathPrediction.timeTreshold = dataTimeLength;
+            pathPrediction.timeThreshold = dataTimeLength;
             pathPrediction.predictionPathLenghtInTime = timeLength;
         }
     }

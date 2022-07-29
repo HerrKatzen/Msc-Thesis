@@ -125,13 +125,11 @@ public class DataPlayer : MonoBehaviour
     {
         StepAnimation();
     }
-
     public void StepAnimation()
     {
         if (!replaying) return;
         int currentTimeIndex = (int)Mathf.Clamp(Mathf.Floor(Time / stepTime), 0f, numberOfSteps - 2); //we dont want to index out of bounds, and we are lerping to the next
-        float lerp = stepTime / (Time / currentTimeIndex);
-        if (float.IsNaN(lerp)) lerp = 0.5f;
+        float lerp = (Time - ((float)currentTimeIndex * stepTime)) / stepTime;
         foreach (var vessel in localDataDictionary)
         {
             Vector3 currentPos = new Vector3(vessel.Value[currentTimeIndex].eta.east, -vessel.Value[currentTimeIndex].eta.down, vessel.Value[currentTimeIndex].eta.north);
@@ -139,11 +137,9 @@ public class DataPlayer : MonoBehaviour
             Quaternion currRot = Quaternion.Euler(vessel.Value[currentTimeIndex].eta.pitch * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex].eta.yaw * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex].eta.roll * Mathf.Rad2Deg);
-            //Quaternion.AngleAxis(vessel.Value[currentTimeIndex].eta.yaw * Mathf.Rad2Deg, Vector3.up);
             Quaternion nextRot = Quaternion.Euler(vessel.Value[currentTimeIndex + 1].eta.pitch * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex + 1].eta.yaw * Mathf.Rad2Deg,
                                                   vessel.Value[currentTimeIndex + 1].eta.roll * Mathf.Rad2Deg);
-            //Quaternion.AngleAxis(vessel.Value[currentTimeIndex + 1].eta.yaw * Mathf.Rad2Deg, Vector3.up);
 
             if (vessels.TryGetValue(vessel.Key, out GameObject go))
             {

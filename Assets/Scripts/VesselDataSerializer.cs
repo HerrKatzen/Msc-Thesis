@@ -45,7 +45,7 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
     {
         JSONNode root = new JSONObject();
         JSONNode dataArray = new JSONArray();
-        root["allShipData"] = dataArray;
+        root["allVesselData"] = dataArray;
         foreach (var data in vessels)
         {
             dataArray.Add(data.DataPackage.ToJsonNode());
@@ -68,11 +68,20 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
         {
             Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, vesselDataFolder));
         }
-        var path = Path.Combine(Application.persistentDataPath, vesselDataFolder, fileName) + ".json";
-        File.WriteAllText(path, json);
-        fileNameSet = false;
-        fileNameSetter.SetActive(false);
-        PopUpWithButton.Instance.PopupText("File saved at:\n" + path);
+        try 
+        {
+            var path = Path.Combine(Application.persistentDataPath, vesselDataFolder, fileName) + ".json";
+            File.WriteAllText(path, json);
+            fileNameSet = false;
+            fileNameSetter.SetActive(false);
+            PopUpWithButton.Instance.PopupText("File saved at:\n" + path);
+        }
+        catch (Exception e)
+        {
+            fileNameSet = false;
+            fileNameSetter.SetActive(false);
+            PopUpWithButton.Instance.PopupText("File save failed:\n" + e.Message);
+        }
     }
 
     public void SetButtonClicked()
@@ -96,7 +105,7 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
                 var instance = Instantiate(FileLoaderElementPrefab, listElementsParent);
                 await Task.Yield();
                 await Task.Yield();
-                var fileLoadData = instance.GetComponent<FileLoadData>();
+                var fileLoadData = instance.GetComponent<FileData>();
                 if (fileLoadData == null) continue;
                 fileLoadData.SetText(file.Name);
                 fileLoadData.SetFileLoader(this);
@@ -141,7 +150,7 @@ public class VesselDataSerializer : MonoBehaviour, IFileLoader
         string jsonData = File.ReadAllText(Path.Combine(path, fileName));
 
         JSONNode root = JSON.Parse(jsonData);
-        JSONNode dataArray = root["allShipData"];
+        JSONNode dataArray = root["allVesselData"];
         var vessels = new List<VesselData.VesselMetaDataPackage>();
         try
         {

@@ -21,7 +21,6 @@ public class DataLogger : Singleton<DataLogger>, IFileLoader
     private TMP_InputField fileNameInputField;
     [SerializeField]
     private Button startReplayButton;
-    private FileLoadData lastLoadedFile;
     public Dictionary<string, List<BaseVessel.DataBundle>> SimData { get; private set; } = new Dictionary<string, List<BaseVessel.DataBundle>>();
     public Dictionary<string, List<Vector3>> CheckPoints { get; private set; } = new Dictionary<string, List<Vector3>>();
     public float StepTime { get; private set; }
@@ -110,23 +109,6 @@ public class DataLogger : Singleton<DataLogger>, IFileLoader
                 simD[data.Key].Add(bundleData.ToJsonNode());
             }
         }
-
-        var checkPointNode = new JSONObject();
-        root["CheckPoints"] = checkPointNode;
-        foreach (var pointData in CheckPoints)
-        {
-            var values = new JSONArray();
-            checkPointNode[pointData.Key] = values;
-            foreach (var p in pointData.Value)
-            {
-                JSONNode vector3Node = new JSONObject();
-                vector3Node["x"] = p.x;
-                vector3Node["y"] = p.y;
-                vector3Node["z"] = p.z;
-                values.Add(vector3Node);
-            }
-        }
-
         return root.ToString();
     }
 
@@ -161,25 +143,21 @@ public class DataLogger : Singleton<DataLogger>, IFileLoader
             SimData.Add(pair.Key, itemList);
         }
 
-        foreach (var pair in root["CheckPoints"])
-        {
-            var itemList = new List<Vector3>();
-            foreach (var o in pair.Value.Children)
-            {
-                itemList.Add(new Vector3(o["x"], o["y"], o["z"]));
-            }
-            CheckPoints.Add(pair.Key, itemList);
-        }
-
         StepTime = root["stepTime"];
         setupValuesData = new SetupValuesData(root);
         ownVesselName = root["ownVessel"];
 
-        JSONNode dataArray = root["allShipData"];
+        JSONNode dataArray = root["allVesselData"];
         vesselData = new List<VesselData.VesselMetaDataPackage>();
         foreach (var data in dataArray)
         {
             var vessel = new VesselData.VesselMetaDataPackage(data);
+            var itemList = new List<Vector3>();
+            foreach (var wp in vessel.NEWayPoints)
+            {
+                itemList.Add(new Vector3(wp.y, 0f, wp.x));
+            }
+            CheckPoints.Add(vessel.vesselName, itemList);
             vesselData.Add(vessel);
         }
     }
@@ -204,11 +182,20 @@ public class DataLogger : Singleton<DataLogger>, IFileLoader
         {
             Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, simDataFolder));
         }
-        var path = Path.Combine(Application.persistentDataPath, simDataFolder, fileName) + ".json";
-        File.WriteAllText(path, json);
-        fileNameSet = false;
-        fileNameSetter.SetActive(false);
-        PopUpWithButton.Instance.PopupText("File saved at:\n" + path);
+        try
+        {
+            var path = Path.Combine(Application.persistentDataPath, simDataFolder, fileName) + ".json";
+            File.WriteAllText(path, json);
+            fileNameSet = false;
+            fileNameSetter.SetActive(false);
+            PopUpWithButton.Instance.PopupText("File saved at:\n" + path);
+        }
+        catch (Exception e)
+        {
+            fileNameSet = false;
+            fileNameSetter.SetActive(false);
+            PopUpWithButton.Instance.PopupText("File save failed:\n" + e.Message);
+        }
     }
 
     public async void ReadFileSystem()
@@ -227,7 +214,7 @@ public class DataLogger : Singleton<DataLogger>, IFileLoader
                 var instance = Instantiate(simDataFilePrefab, listElementParent);
                 await Task.Yield();
                 await Task.Yield();
-                var fileLoadData = instance.GetComponent<FileLoadData>();
+                var fileLoadData = instance.GetComponent<FileData>();
                 if (fileLoadData == null) continue;
                 fileLoadData.SetText(file.Name);
                 fileLoadData.SetFileLoader(this);

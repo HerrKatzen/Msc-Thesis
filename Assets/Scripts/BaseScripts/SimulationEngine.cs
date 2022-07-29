@@ -10,19 +10,23 @@ using UnityEngine;
 [RequireComponent(typeof(DataPlayer))]
 public class SimulationEngine : MonoBehaviour, IColissionHandler
 {
-    public string ownVesselName = "";
-
-    [Tooltip("time between every radar scan in seconds")]
-    public float radarScanTime = 1f;
-
-    [Tooltip("the range of the radar in meters")]
-    public float radarScanDistance = 2000f;
-
-    [Tooltip("time between each path prediction run in seconds")]
-    public float generatedPathUpdateTime = 5f;
-
-    [Tooltip("the list of vessel types. Should use a prefab with the types as children")]
     [SerializeField]
+    [Tooltip("time between every radar scan in seconds")]
+    private float radarScanTime = 1f;
+
+    [SerializeField]
+    [Tooltip("the range of the radar in meters")]
+    private float radarScanDistance = 2000f;
+
+    [SerializeField]
+    [Tooltip("time between each path prediction run in seconds")]
+    private float generatedPathUpdateTime = 5f;
+
+    [SerializeField]
+    private string ownVesselName = "";
+
+    [SerializeField]
+    [Tooltip("the list of vessel types. Should use a prefab with the types as children")]
     private List<BaseVessel> vesselTypes;
     [SerializeField]
     private HUDController HUD;
@@ -32,7 +36,7 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
     private Material redAlphaMat;
 
     private ThorFossenSimulationHandler simHandler;
-    private Enviroment enviroment;
+    private Enviroment environment;
     private DataPlayer dataPlayer;
 
     private float radarTimer = 0f;
@@ -49,11 +53,11 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
     private void Awake()
     {
         simHandler = GetComponent<ThorFossenSimulationHandler>();
-        enviroment = GetComponent<Enviroment>();
+        environment = GetComponent<Enviroment>();
         dataPlayer = GetComponent<DataPlayer>();
     }
 
-    public void StartSimFromLog()
+    public void StartSimulationFromLog()
     {
         StartSimFromLogAsync();
     }
@@ -63,17 +67,11 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
         radarScanDistance = setupValuesData.radarScanDistance;
         radarScanTime = setupValuesData.radarScanTime;
         generatedPathUpdateTime = setupValuesData.pathUpdateTime;
-        enviroment.rho = setupValuesData.enviromentRho;
-        enviroment.depth = setupValuesData.enviromentDepth;
+        environment.rho = setupValuesData.enviromentRho;
+        environment.depth = setupValuesData.enviromentDepth;
         ownVesselName = DataLogger.Instance.ownVesselName;
-        var vesselsData = new Dictionary<string, VesselData.VesselMetaDataPackage>();
-        foreach (var vessel in DataLogger.Instance.vesselData)
-        {
-            vesselsData.Add(vessel.vesselName, vessel);
-        }
 
         allVesselGameobjects = await dataPlayer.SetupDataReplayAsync();
-
 
         if (allVesselGameobjects.TryGetValue(ownVesselName, out GameObject go))
         {
@@ -86,16 +84,39 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
 
             VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
             collisionPreditor.SetCollisionHandler(this);
-            if(vesselsData.TryGetValue(ownVesselName, out VesselData.VesselMetaDataPackage dataPackage))
+
+            for(int i = 0; i < DataLogger.Instance.vesselData.Count; i++)
             {
-                collisionPreditor.InitCollisionPredictionData(ownVesselName, dataPackage.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
+                if (DataLogger.Instance.vesselData[i].vesselName.Equals(ownVesselName))
+                {
+                    var dataPackage = DataLogger.Instance.vesselData[i];
+                    collisionPreditor.InitCollisionPredictionData(ownVesselName, dataPackage.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
+                    break;
+                }
             }
+            
             var exclusionZone = collisionPreditor.GenerateExclusionZone(go);
             HUD.SetExclusionZone(exclusionZone);
             HUD.SetOverlookingCam();
         }
 
-        dataPlayer.StartAnimation();
+        if (DataLogger.Instance.SimData.TryGetValue(ownVesselName, out List<BaseVessel.DataBundle> ownShipData))
+        {
+            ownData = new List<BaseVessel.DataBundle>(ownShipData.Count);
+            for (int i = 0; i < ownShipData.Count; i++)
+            {
+                //transforming global data to local for the collision predictor to use
+                var eta = new BaseVessel.Eta(ownShipData[i].eta.north - dataPlayer.AnimationDelta.z, ownShipData[i].eta.east - dataPlayer.AnimationDelta.x,
+                                                    ownShipData[i].eta.down, ownShipData[i].eta.roll, ownShipData[i].eta.pitch, ownShipData[i].eta.yaw);
+                var timeStamp = ownShipData[i].timeStamp;
+                var linearSpeed = ownShipData[i].linearSpeed;
+                var torqueSpeed = ownShipData[i].angularSpeed;
+                var rudderAngle = ownShipData[i].rudderAngle;
+                var rudderCommand = ownShipData[i].rudderCommand;
+                ownData.Add(new BaseVessel.DataBundle(eta, linearSpeed, torqueSpeed, rudderAngle, rudderCommand, timeStamp));
+            }
+            dataPlayer.StartAnimation();
+        }
     }
 
     public async void StartSimulationFromSetup(List<VesselData> setupVesselData, SetupValuesData setupValuesData, string _ownVesselName)
@@ -103,8 +124,8 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
         radarScanDistance = setupValuesData.radarScanDistance;
         radarScanTime = setupValuesData.radarScanTime;
         generatedPathUpdateTime = setupValuesData.pathUpdateTime;
-        enviroment.rho = setupValuesData.enviromentRho;
-        enviroment.depth = setupValuesData.enviromentDepth;
+        environment.rho = setupValuesData.enviromentRho;
+        environment.depth = setupValuesData.enviromentDepth;
 
         var baseVessels = new List<BaseVessel>();
         ownVesselName = _ownVesselName;
@@ -131,7 +152,7 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
                     StartPoint startPoint = sd.gameObject.AddComponent<StartPoint>();
                     startPoint.eta = new BaseVessel.Eta(sd.DataPackage.eta);
                     startPoint.linearSpeed = sd.DataPackage.linearSpeed;
-                    startPoint.torqueSpeed = sd.DataPackage.torqueSpeed;
+                    startPoint.torqueSpeed = sd.DataPackage.angularSpeed;
                     startPoint.NEWayPoints = sd.DataPackage.NEWayPoints;
 
                     baseVessels.Add(baseVessel);
@@ -139,7 +160,7 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
             }
         }
         //generate all paths
-        simHandler.SetupSimulation(baseVessels, setupValuesData.stepTime, setupValuesData.simTime, enviroment);
+        simHandler.SetupSimulation(baseVessels, setupValuesData.stepTime, setupValuesData.simTime, environment);
         await simHandler.RunSimulation();
         await Task.Yield();
 
@@ -171,7 +192,7 @@ public class SimulationEngine : MonoBehaviour, IColissionHandler
                                                     ownShipData[i].eta.down, ownShipData[i].eta.roll, ownShipData[i].eta.pitch, ownShipData[i].eta.yaw);
                 var timeStamp = ownShipData[i].timeStamp;
                 var linearSpeed = ownShipData[i].linearSpeed;
-                var torqueSpeed = ownShipData[i].torqueSpeed;
+                var torqueSpeed = ownShipData[i].angularSpeed;
                 var rudderAngle = ownShipData[i].rudderAngle;
                 var rudderCommand = ownShipData[i].rudderCommand;
                 ownData.Add(new BaseVessel.DataBundle(eta, linearSpeed, torqueSpeed, rudderAngle, rudderCommand, timeStamp));

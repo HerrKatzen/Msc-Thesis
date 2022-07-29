@@ -56,6 +56,12 @@ public class VesselData : MonoBehaviour
         dataHandler.OnEditClicked(this);
     }
 
+    public void SetOverlayDone()
+    {
+        vesselDataUI.editModeOverlay.SetActive(false);
+        vesselDataUI.normalModeOverlay.SetActive(true);
+    }
+
     public void EditDone()
     {
         vesselDataUI.editModeOverlay.SetActive(false);
@@ -82,7 +88,7 @@ public class VesselData : MonoBehaviour
         public float tau_X;
         public BaseVessel.Eta eta = new BaseVessel.Eta();
         public Vector3 linearSpeed = new Vector3();
-        public Vector3 torqueSpeed = new Vector3();
+        public Vector3 angularSpeed = new Vector3();
         public BaseVessel.ControlSystem controlSystem;
         public List<Vector2> NEWayPoints = new List<Vector2>();
 
@@ -111,9 +117,9 @@ public class VesselData : MonoBehaviour
             linearSpeed.z = linSpeed["z"];
 
             JSONNode torSpeed = root["startTorqSpeed"];
-            torqueSpeed.x = torSpeed["x"];
-            torqueSpeed.y = torSpeed["y"];
-            torqueSpeed.z = torSpeed["z"];
+            angularSpeed.x = torSpeed["x"];
+            angularSpeed.y = torSpeed["y"];
+            angularSpeed.z = torSpeed["z"];
 
             controlSystem = (BaseVessel.ControlSystem) Enum.Parse(typeof(BaseVessel.ControlSystem), root["controller"], true);
 
@@ -153,9 +159,9 @@ public class VesselData : MonoBehaviour
             root["startLinSpeed"] = linSpeed;
 
             JSONNode torSpeed = new JSONObject();
-            torSpeed["x"] = torqueSpeed.x;
-            torSpeed["y"] = torqueSpeed.y;
-            torSpeed["z"] = torqueSpeed.z;
+            torSpeed["x"] = angularSpeed.x;
+            torSpeed["y"] = angularSpeed.y;
+            torSpeed["z"] = angularSpeed.z;
             root["startTorqSpeed"] = torSpeed;
 
             root["controller"] = controlSystem.ToString();

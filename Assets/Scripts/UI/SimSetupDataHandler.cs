@@ -30,6 +30,8 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     private Button startButton;
     [SerializeField]
     private Button exportButton;
+    [SerializeField]
+    private Button otherSettingsButton;
 
     public UnityEvent OnEditClickedEvent;
 
@@ -45,17 +47,17 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
 
     public void AddNewShip()
     {
-        var instance = Instantiate(vesselDataPrefab, vesselsParent);
-        var VesselData = instance.GetComponent<VesselData>();
-        vessels.Add(VesselData);
-        VesselData.SetDataHandler(this);
-        VesselData.SetEditMode();
         ResetUI();
+        var instance = Instantiate(vesselDataPrefab, vesselsParent);
+        var vesselData = instance.GetComponent<VesselData>();
+        vessels.Add(vesselData);
+        vesselData.SetDataHandler(this);
+        vesselData.SetEditMode();
     }
 
     public void AddNewWaypoint()
     {
-        var instance = Instantiate(waypointPrefab, waypointsParent);
+        Instantiate(waypointPrefab, waypointsParent);
     }
 
     public void SaveDataChanges()
@@ -89,7 +91,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
             ui.speedN.text.Length > 0 ? float.Parse(ui.speedN.text) : float.Parse(ui.speedN.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedE.text.Length > 0 ? float.Parse(ui.speedE.text) : float.Parse(ui.speedE.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedD.text.Length > 0 ? float.Parse(ui.speedD.text) : float.Parse(ui.speedD.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text));
-        dp.torqueSpeed = new Vector3(
+        dp.angularSpeed = new Vector3(
             ui.speedR.text.Length > 0 ? float.Parse(ui.speedR.text) : float.Parse(ui.speedR.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedP.text.Length > 0 ? float.Parse(ui.speedP.text) : float.Parse(ui.speedP.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text),
             ui.speedY.text.Length > 0 ? float.Parse(ui.speedY.text) : float.Parse(ui.speedY.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text));
@@ -225,6 +227,15 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         ui.speedR.text = "";
         ui.speedY.text = "";
         ui.surgeForce.text = "";
+        
+        if(vessels != null)
+        {
+            foreach (var v in vessels)
+            {
+                v.SetOverlayDone();
+            }
+        }
+        otherSettingsButton.interactable = true;
     }
 
     public void OnVesselRemoved(VesselData vesselData)
@@ -261,6 +272,7 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
     public void OnEditClicked(VesselData vesselData)
     {
         if(activeVesselData != null) activeVesselData.EditDone();
+        otherSettingsButton.interactable = false;
         activeVesselData = vesselData;
         var waypoints = activeVesselData.DataPackage.NEWayPoints;
         if(waypoints != null)
@@ -288,9 +300,9 @@ public class SimSetupDataHandler : MonoBehaviour, IDataHandler
         ui.speedN.text = vesselData.DataPackage.linearSpeed.x.ToString();
         ui.speedE.text = vesselData.DataPackage.linearSpeed.y.ToString();
         ui.speedD.text = vesselData.DataPackage.linearSpeed.z.ToString();
-        ui.speedR.text = vesselData.DataPackage.torqueSpeed.x.ToString();
-        ui.speedP.text = vesselData.DataPackage.torqueSpeed.y.ToString();
-        ui.speedY.text = vesselData.DataPackage.torqueSpeed.z.ToString();
+        ui.speedR.text = vesselData.DataPackage.angularSpeed.x.ToString();
+        ui.speedP.text = vesselData.DataPackage.angularSpeed.y.ToString();
+        ui.speedY.text = vesselData.DataPackage.angularSpeed.z.ToString();
 
         for(int i = 0; i < ui.controller.options.Count; i++)
         {

@@ -40,6 +40,6 @@ public class Radar : MonoBehaviour
         }
         rotation3.y = 0f;
         rotation3.Normalize();
-        return rotation3 * distance * noisePercent;
+        return rotation3 * distance * noisePercent * 0.1f;
     }
 }
