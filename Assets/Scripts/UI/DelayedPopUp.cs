@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using VesselSimulator.Util;
 
-public class DelayedPopUp : Singleton<DelayedPopUp>
+namespace VesselSimulator.UI
 {
-    [SerializeField]
-    private GameObject popupGameobject;
-    [SerializeField]
-    private TextMeshProUGUI popupText;
-
-    public async void PopupTextWithDelay(string text, int delay = 2000)
+    public class DelayedPopUp : Singleton<DelayedPopUp>
     {
-        popupText.text = text;
-        popupGameobject.SetActive(true);
-        await Task.Delay(delay);
-        popupGameobject.SetActive(false);
+        [SerializeField]
+        private GameObject popupGameobject;
+        [SerializeField]
+        private TextMeshProUGUI popupText;
+
+        public async void PopupTextWithDelay(string text, int delay = 2000)
+        {
+            popupText.text = text;
+            popupGameobject.SetActive(true);
+            await Task.Delay(delay);
+            popupGameobject.SetActive(false);
+        }
     }
 }

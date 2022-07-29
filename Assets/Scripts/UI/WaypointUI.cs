@@ -3,25 +3,28 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class WaypointUI : MonoBehaviour
+namespace VesselSimulator.UI
 {
-    public TMP_InputField nedN;
-    public TMP_InputField nedE;
-
-    public void Delete()
+    public class WaypointUI : MonoBehaviour
     {
-        DestroyImmediate(gameObject);
-    }
+        public TMP_InputField nedN;
+        public TMP_InputField nedE;
 
-    public void MoveWaypointUP(bool up)
-    {
-        if (up)
+        public void Delete()
         {
-            transform.SetSiblingIndex(Mathf.Max(0, transform.GetSiblingIndex() - 1));
+            DestroyImmediate(gameObject);
         }
-        else
+
+        public void MoveWaypointUP(bool up)
         {
-            transform.SetSiblingIndex(Mathf.Min(transform.parent.childCount - 1, transform.GetSiblingIndex() + 1));
+            if (up)
+            {
+                transform.SetSiblingIndex(Mathf.Max(0, transform.GetSiblingIndex() - 1));
+            }
+            else
+            {
+                transform.SetSiblingIndex(Mathf.Min(transform.parent.childCount - 1, transform.GetSiblingIndex() + 1));
+            }
         }
     }
 }

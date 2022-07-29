@@ -2,36 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MenuHandler : MonoBehaviour
+namespace VesselSimulator.UI
 {
-    [SerializeField]
-    private List<GameObject> menu;
-    private GameObject lastActiveMenuItem = null;
-    public void SetMenu(GameObject menuItem)
+    public class MenuHandler : MonoBehaviour
     {
-        foreach (var m in menu)
+        [SerializeField]
+        private List<GameObject> menu;
+        private GameObject lastActiveMenuItem = null;
+        public void SetMenu(GameObject menuItem)
         {
-            if (m == menuItem) m.SetActive(true);
-            else m.SetActive(false);
+            foreach (var m in menu)
+            {
+                if (m == menuItem) m.SetActive(true);
+                else m.SetActive(false);
+            }
         }
-    }
 
-    public void SetMenuNONE()
-    {
-        foreach (var m in menu)
+        public void SetMenuNONE()
         {
-            if (m.activeInHierarchy) lastActiveMenuItem = m;
-            m.SetActive(false);
+            foreach (var m in menu)
+            {
+                if (m.activeInHierarchy) lastActiveMenuItem = m;
+                m.SetActive(false);
+            }
         }
-    }
 
-    public void ResetMenu()
-    {
-        SetMenu(lastActiveMenuItem);
-    }
+        public void ResetMenu()
+        {
+            SetMenu(lastActiveMenuItem);
+        }
 
-    public void Quit()
-    {
-        Application.Quit();
+        public void Quit()
+        {
+            Application.Quit();
+        }
     }
 }

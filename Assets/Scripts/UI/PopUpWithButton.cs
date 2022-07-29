@@ -3,22 +3,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using VesselSimulator.Util;
 
-public class PopUpWithButton : Singleton<PopUpWithButton>
+namespace VesselSimulator.UI
 {
-    [SerializeField]
-    private GameObject popupGameobject;
-    [SerializeField]
-    private TextMeshProUGUI popupText;
-
-    public void PopupText(string text)
+    public class PopUpWithButton : Singleton<PopUpWithButton>
     {
-        popupText.text = text;
-        popupGameobject.SetActive(true);
-    }
+        [SerializeField]
+        private GameObject popupGameobject;
+        [SerializeField]
+        private TextMeshProUGUI popupText;
 
-    public void OK()
-    {
-        popupGameobject.SetActive(false);
+        public void PopupText(string text)
+        {
+            popupText.text = text;
+            popupGameobject.SetActive(true);
+        }
+
+        public void OK()
+        {
+            popupGameobject.SetActive(false);
+        }
     }
 }

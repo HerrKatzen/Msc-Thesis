@@ -4,52 +4,57 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VesselSimulator.Simulation;
 
-public class FileData : MonoBehaviour
+namespace VesselSimulator.UI
 {
-    [SerializeField]
-    private TextMeshProUGUI fileName;
-    [SerializeField]
-    private Button loadButton;
-    [SerializeField]
-    private TextMeshProUGUI loadButtonText;
-
-    private IFileLoader fileLoader;
-
-    public void SetText(string text)
+    public class FileData : MonoBehaviour
     {
-        fileName.text = text;
-    }
+        [SerializeField]
+        private TextMeshProUGUI fileName;
+        [SerializeField]
+        private Button loadButton;
+        [SerializeField]
+        private TextMeshProUGUI loadButtonText;
 
-    public void SetFileLoader(IFileLoader _fileLoader)
-    {
-        fileLoader = _fileLoader;
-    }
+        private IFileLoader fileLoader;
 
-    public void LoadFile()
-    {
-        var result = fileLoader.LoadFileFromFileName(fileName.text, ResetButton);
-
-        if(result)
+        public void SetText(string text)
         {
-            loadButtonText.text = "File Loaded";
+            fileName.text = text;
         }
-        else
+
+        public void SetFileLoader(IFileLoader _fileLoader)
         {
-            loadButtonText.text = "File Load Failed";
+            fileLoader = _fileLoader;
         }
-        loadButton.interactable = false;
+
+        public void LoadFile()
+        {
+            var result = fileLoader.LoadFileFromFileName(fileName.text, ResetButton);
+
+            if (result)
+            {
+                loadButtonText.text = "File Loaded";
+            }
+            else
+            {
+                loadButtonText.text = "File Load Failed";
+            }
+            loadButton.interactable = false;
+        }
+
+        public void DeleteFile()
+        {
+            fileLoader.DeleteFile(fileName.text);
+            Destroy(gameObject);
+        }
+
+        public void ResetButton()
+        {
+            loadButtonText.text = "Load File";
+            loadButton.interactable = true;
+        }
     }
 
-    public void DeleteFile()
-    {
-        fileLoader.DeleteFile(fileName.text);
-        Destroy(gameObject);
-    }
-
-    public void ResetButton()
-    {
-        loadButtonText.text = "Load File";
-        loadButton.interactable = true;
-    }
 }
