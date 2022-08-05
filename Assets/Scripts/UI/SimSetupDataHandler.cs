@@ -145,6 +145,7 @@ namespace VesselSimulator.UI
             if (ui.radarScanNoisePercent.text.Length > 0) setupValues.radarScanNoisePercent = float.Parse(ui.radarScanNoisePercent.text);
             if (ui.pathTimeLength.text.Length > 0) setupValues.pathTimeLength = float.Parse(ui.pathTimeLength.text);
             if (ui.pathDataTimeLength.text.Length > 0) setupValues.pathDataTimeLength = float.Parse(ui.pathDataTimeLength.text);
+            if (ui.pathDataMinTime.text.Length > 0) setupValues.pathDataMinTime = float.Parse(ui.pathDataMinTime.text);
             if (ui.pathTurnRateAcceleration.text.Length > 0) setupValues.pathTurnRateAcceleration = float.Parse(ui.pathTurnRateAcceleration.text);
             if (ui.pathUpdateTime.text.Length > 0) setupValues.pathUpdateTime = float.Parse(ui.pathUpdateTime.text);
             if (ui.exclusionZoneFront.text.Length > 0) setupValues.exclusionZoneFront = float.Parse(ui.exclusionZoneFront.text);
@@ -202,6 +203,7 @@ namespace VesselSimulator.UI
             ui.pathUpdateTime.text = _setupValuesData.pathUpdateTime.ToString();
             ui.pathTimeLength.text = _setupValuesData.pathTimeLength.ToString();
             ui.pathDataTimeLength.text = _setupValuesData.pathDataTimeLength.ToString();
+            ui.pathDataMinTime.text = _setupValuesData.pathDataMinTime.ToString();
             ui.pathTurnRateAcceleration.text = _setupValuesData.pathTurnRateAcceleration.ToString();
             ui.exclusionZoneFront.text = _setupValuesData.exclusionZoneFront.ToString();
             ui.exclusionZoneSides.text = _setupValuesData.exclusionZoneSides.ToString();
@@ -374,6 +376,7 @@ namespace VesselSimulator.UI
             public TMP_InputField pathUpdateTime;
             public TMP_InputField pathTimeLength;
             public TMP_InputField pathDataTimeLength;
+            public TMP_InputField pathDataMinTime;
             public TMP_InputField pathTurnRateAcceleration;
             public TMP_InputField exclusionZoneFront;
             public TMP_InputField exclusionZoneBack;
@@ -393,6 +396,7 @@ namespace VesselSimulator.UI
         public float pathUpdateTime = 3f;
         public float pathTimeLength = 120f;
         public float pathDataTimeLength = 30f;
+        public float pathDataMinTime = 2f;
         public float pathTurnRateAcceleration = 0f;
         public float exclusionZoneFront = 5f;
         public float exclusionZoneBack = 2f;

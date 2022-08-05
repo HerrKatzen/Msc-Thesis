@@ -63,7 +63,7 @@ namespace VesselSimulator.TFVesselSimulator
                     DataLogger.Instance.LogVesselData(vessel.vesselName, new BaseVessel.DataBundle(vessel.eta, vessel.linSpeed, vessel.torSpeed, vessel.rudAngle, controlData.u_control, step));
                 }
                 count++;
-                if (count % 1000 == 0)
+                if (count % 10000 == 0)
                 {
                     await Task.Yield();
                 }

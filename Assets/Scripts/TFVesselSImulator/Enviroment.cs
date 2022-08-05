@@ -12,5 +12,6 @@ namespace VesselSimulator.TFVesselSimulator
         /// density of water
         /// </summary>
         public float rho = 1025f;
+        public GameObject groundEnvironment = null;
     }
 }

@@ -16,13 +16,15 @@ namespace VesselSimulator.Simulation
         private List<GameObject> pathObectsPool = new List<GameObject>();
         private float pathTimeLenght = 120f;
         private float pathDataTimeLenght = 30f;
+        private float pathDataMinTime = 2f;
         private float turnRateAcceleration;
 
-        public void SetupDatabasePathPredictionData(float _pathTimeLenght, float _pathDataTimeLenght, float _turnRateAcceleration)
+        public void SetupDatabasePathPredictionData(float _pathTimeLenght, float _pathDataTimeLenght, float _turnRateAcceleration, float _minTime)
         {
             pathTimeLenght = _pathTimeLenght;
             pathDataTimeLenght = _pathDataTimeLenght;
             turnRateAcceleration = _turnRateAcceleration;
+            pathDataMinTime = _minTime;
         }
 
         //call this regularly
@@ -82,7 +84,7 @@ namespace VesselSimulator.Simulation
             }
             else
             {
-                vesselDataMap.Add(vessel, new VesselDataLog(dataPoint, turnRateAcceleration, pathTimeLenght, pathDataTimeLenght));
+                vesselDataMap.Add(vessel, new VesselDataLog(dataPoint, turnRateAcceleration, pathTimeLenght, pathDataTimeLenght, pathDataMinTime));
             }
         }
 
@@ -122,7 +124,7 @@ namespace VesselSimulator.Simulation
                 pathPrediction.timeThreshold = 20f;
                 pathPrediction.predictionPathLenghtInTime = 180f;
             }
-            public VesselDataLog(VesselMeasurementData dataPoint, float turnRateAcceleration, float timeLength, float dataTimeLength)
+            public VesselDataLog(VesselMeasurementData dataPoint, float turnRateAcceleration, float timeLength, float dataTimeLength, float pathMinTime)
             {
                 pathData = new List<VesselMeasurementData>();
                 pathData.Add(dataPoint);
@@ -130,6 +132,7 @@ namespace VesselSimulator.Simulation
                 pathPrediction.turnRateAcceleration = turnRateAcceleration;
                 pathPrediction.timeThreshold = dataTimeLength;
                 pathPrediction.predictionPathLenghtInTime = timeLength;
+                pathPrediction.minTime = pathMinTime;
             }
         }
     }

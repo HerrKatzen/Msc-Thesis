@@ -42,6 +42,7 @@ namespace VesselSimulator.Simulation.Collision
         public float linearAcceleration = 0.1f;
 
         public List<VesselMeasurementData> filteredDataDebug = new List<VesselMeasurementData>();
+        public List<VesselMeasurementData> filteredDataDebug2 = new List<VesselMeasurementData>();
 
         public List<VesselMeasurementData> GeneratePathPrediction(List<VesselMeasurementData> ShipData)
         {
@@ -60,7 +61,7 @@ namespace VesselSimulator.Simulation.Collision
                 averagePoint /= (float)filteredData.Count;
                 return GenerateStaticPointPrediction(averagePoint, filteredData[filteredData.Count - 1].timeStamp);
             }
-
+            filteredDataDebug2 = filteredData;
             List<VesselMeasurementData> catmulRomPoints = GenerateCatmulRomShipData(filteredData);
             //Filtered and simplifed path generated, getting data
             filteredDataDebug = catmulRomPoints;
@@ -116,6 +117,7 @@ namespace VesselSimulator.Simulation.Collision
 
             averageSpeed /= ((float)catmulRomPoints.Count - 1f); //in seconds
             averageTurnRate /= ((float)catmulRomPoints.Count - 2f); //in seconds
+            averageAcceleration /= ((float)catmulRomPoints.Count - 2f); //in seconds
 
             //the ship considering its average speed and travel time traveled less than what it would take to do a 180 degree turn back, we consider it stationary
             if (anchoredShipTravelTreshold == 0f && distane < timeDelta * averageSpeed / (Mathf.PI / 2f))
@@ -170,20 +172,20 @@ namespace VesselSimulator.Simulation.Collision
                 {
                     //turning the vector
                     lastMovementDirectionNormalized = Quaternion.AngleAxis(scaledTurnRate, Vector3.up) * lastMovementDirectionNormalized;
-                    normalizedTurnRateAcceleration *= normalizedTurnRateAcceleration;
+                    normalizedTurnRateAcceleration *= Mathf.Pow((1f - turnRateAcceleration), timeBetweenPredictionValues);
                 }
                 //if acceleration is smaller than 1cm/s^2 we consider it 0
                 if (averageAcceleration >= 0.01f)
                 {
                     averageSpeed += averageAcceleration;
-                    averageAcceleration *= 1f - (linearAcceleration * timeBetweenPredictionValues);
+                    averageAcceleration *= Mathf.Pow((1f - linearAcceleration),timeBetweenPredictionValues);
                 }
                 //scaling the vector
-                predictedMovement = lastMovementDirectionNormalized * averageSpeed * timeBetweenPredictionValues;
+                predictedMovement = lastMovementDirectionNormalized.normalized * averageSpeed * timeBetweenPredictionValues;
                 var newDataPoint = new VesselMeasurementData(lastPathPoint.timeStamp + f, pathPrediction[counter - 1].EUN + predictedMovement);
                 pathPrediction.Add(newDataPoint);
 
-                averageTorque *= (0.9f * timeBetweenPredictionValues);
+                averageTorque *= Mathf.Pow(0.9f, timeBetweenPredictionValues);
                 counter++;
             }
             //remove the first two points, as they overlap with the original path
@@ -260,18 +262,15 @@ namespace VesselSimulator.Simulation.Collision
                         {
                             return new List<VesselMeasurementData>(filteredData);
                         }
-                        if (ShipData[i].timeStamp + minTime < ShipData[j].timeStamp)
+                        posTemp += ShipData[j].EUN;
+                        timeTemp += ShipData[j].timeStamp;
+                        vecCounter += 1f;
+                        if (ShipData[j].timeStamp + minTime > ShipData[i].timeStamp)
                         {
-                            posTemp += ShipData[j].EUN;
-                            timeTemp += ShipData[j].timeStamp;
-                            vecCounter += 1f;
                             j--;
                         }
                         else
                         {
-                            posTemp += ShipData[j].EUN;
-                            timeTemp += ShipData[j].timeStamp;
-                            vecCounter += 1f;
                             break;
                         }
                     }

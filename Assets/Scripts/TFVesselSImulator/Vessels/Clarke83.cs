@@ -53,9 +53,6 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
             torSpeed = new float[3] { startPoint.torqueSpeed.x, startPoint.torqueSpeed.y, startPoint.torqueSpeed.z };
             wayPoints = startPoint.NEWayPoints;
             enviroment = _enviroment;
-            length = 50f;
-            beam = 7f;
-            draft = 5f;
 
             REF = 0f;
             speed = 0f;
@@ -155,12 +152,10 @@ namespace VesselSimulator.TFVesselSimulator.Vessels
 
             //rudder dynamics
             float delta_dot = (delta_c - delta) / rudTimeDelta;
-
             //forward euler integration [k+1]
             delta += sampleTime * delta_dot;
             linSpeed = Mat3x3.Add3(linSpeed, Mat3x3.Mult3(calcLinSpeed, sampleTime));
             torSpeed = Mat3x3.Add3(torSpeed, Mat3x3.Mult3(calcTorSpeed, sampleTime));
-
             rudAngle = delta;
             eta = AttitudeEuler(sampleTime);
         }

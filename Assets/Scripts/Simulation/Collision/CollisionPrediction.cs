@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using VesselSimulator.TFVesselSimulator.Vessels;
+using VesselSimulator.UI;
 
 namespace VesselSimulator.Simulation.Collision
 {
@@ -156,6 +158,34 @@ namespace VesselSimulator.Simulation.Collision
             lineRenderer.Simplify(0.3f);
 
             return lineHolder;
+        }
+
+        public async Task<bool> CheckGrounding(List<BaseVessel.DataBundle> vesselDataList)
+        {
+            Vector3 halfExtents = new Vector3(transform.localScale.x / 2f, transform.localScale.y / 2f, transform.localScale.z / 2f);
+            int counter = 0;
+            for (int i = 0; i < vesselDataList.Count - 1; i++)
+            {
+                var pos = new Vector3(vesselDataList[i].eta.east, vesselDataList[i].eta.down, vesselDataList[i].eta.north);
+                var nextPos = new Vector3(vesselDataList[i + 1].eta.east, vesselDataList[i + 1].eta.down, vesselDataList[i + 1].eta.north);
+                var rot = Quaternion.LookRotation(Vector3.up, nextPos - pos);
+                var colliders = Physics.OverlapBox(pos, halfExtents, rot);
+                if (colliders != null && colliders.Length > 0)
+                {
+                    colissionHandler.RaiseGrounding(vesselName, pos, rot);
+                    return true;
+                }
+                if (counter == 100)
+                {
+                    await Task.Yield();
+                    counter = 0;
+                }
+                else
+                {
+                    counter++;
+                }
+            }
+            return false;
         }
 
         public void SetCollisionHandler(IColissionHandler _colissionHandler)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using VesselSimulator.Simulation.Collision;
@@ -16,6 +17,9 @@ namespace VesselSimulator.Simulation
     [RequireComponent(typeof(DataPlayer))]
     public class SimulationEngine : MonoBehaviour, IColissionHandler
     {
+        [SerializeField]
+        [Tooltip("Should the algorithm check for grounding")]
+        private bool checkForGrounding = false;
         [SerializeField]
         [Tooltip("time between every radar scan in seconds")]
         private float radarScanTime = 1f;
@@ -55,12 +59,14 @@ namespace VesselSimulator.Simulation
         private BaseVessel ownVesselBase;
         private GameObject collisionPoint;
         private bool pauseOnCollision = true;
+        private GameObject sceneElements;
 
         private void Awake()
         {
             simHandler = GetComponent<ThorFossenSimulationHandler>();
             environment = GetComponent<Enviroment>();
             dataPlayer = GetComponent<DataPlayer>();
+            sceneElements = environment.groundEnvironment;
         }
 
         public void StartSimulationFromLog()
@@ -77,7 +83,13 @@ namespace VesselSimulator.Simulation
             environment.depth = setupValuesData.enviromentDepth;
             ownVesselName = DataLogger.Instance.ownVesselName;
 
-            allVesselGameobjects = await dataPlayer.SetupDataReplayAsync();
+            var metaDataDict = new Dictionary<string, VesselData.VesselMetaDataPackage>();
+            foreach (var data in DataLogger.Instance.vesselData)
+            {
+                metaDataDict.Add(data.vesselName, data);
+            }
+
+            allVesselGameobjects = await dataPlayer.SetupDataReplayAsync(metaDataDict);
 
             if (allVesselGameobjects.TryGetValue(ownVesselName, out GameObject go))
             {
@@ -88,7 +100,7 @@ namespace VesselSimulator.Simulation
 
                 radar.InitRadar(ownVesselName, radarScanDistance, setupValuesData.radarScanNoisePercent, allVesselGameobjects);
 
-                VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
+                VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration, setupValuesData.pathDataMinTime);
                 collisionPreditor.SetCollisionHandler(this);
 
                 for (int i = 0; i < DataLogger.Instance.vesselData.Count; i++)
@@ -121,6 +133,11 @@ namespace VesselSimulator.Simulation
                     var rudderCommand = ownShipData[i].rudderCommand;
                     ownData.Add(new BaseVessel.DataBundle(eta, linearSpeed, torqueSpeed, rudderAngle, rudderCommand, timeStamp));
                 }
+                if (sceneElements != null)
+                {
+                    sceneElements.transform.position -= dataPlayer.AnimationDelta;
+                }
+                if (checkForGrounding) await collisionPreditor.CheckGrounding(ownData);
                 dataPlayer.StartAnimation();
             }
         }
@@ -134,9 +151,11 @@ namespace VesselSimulator.Simulation
             environment.depth = setupValuesData.enviromentDepth;
 
             var baseVessels = new List<BaseVessel>();
+            var metaDataList = new List<VesselData.VesselMetaDataPackage>();
             ownVesselName = _ownVesselName;
             foreach (var sd in setupVesselData)
             {
+                metaDataList.Add(sd.DataPackage);
                 foreach (var bv in vesselTypes)
                 {
                     if (bv.name.Equals(sd.DataPackage.vesselType))
@@ -170,7 +189,15 @@ namespace VesselSimulator.Simulation
             await simHandler.RunSimulation();
             await Task.Yield();
 
-            allVesselGameobjects = await dataPlayer.SetupDataReplayAsync();
+
+
+            var metaDataDict = new Dictionary<string, VesselData.VesselMetaDataPackage>();
+            foreach (var data in setupVesselData)
+            {
+                metaDataDict.Add(data.DataPackage.vesselName, data.DataPackage);
+            }
+
+            allVesselGameobjects = await dataPlayer.SetupDataReplayAsync(metaDataDict);
             if (allVesselGameobjects.TryGetValue(ownVesselName, out GameObject go))
             {
                 radar = go.AddComponent<Radar>();
@@ -180,7 +207,7 @@ namespace VesselSimulator.Simulation
 
                 radar.InitRadar(ownVesselName, radarScanDistance, setupValuesData.radarScanNoisePercent, allVesselGameobjects);
 
-                VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration);
+                VesselDatabase.Instance.SetupDatabasePathPredictionData(setupValuesData.pathTimeLength, setupValuesData.pathDataTimeLength, setupValuesData.pathTurnRateAcceleration, setupValuesData.pathDataMinTime);
                 collisionPreditor.SetCollisionHandler(this);
                 collisionPreditor.InitCollisionPredictionData(ownVesselName, ownVesselBase.length, setupValuesData.exclusionZoneFront, setupValuesData.exclusionZoneSides, setupValuesData.exclusionZoneBack);
                 var exclusionZone = collisionPreditor.GenerateExclusionZone(go);
@@ -203,6 +230,11 @@ namespace VesselSimulator.Simulation
                     var rudderCommand = ownShipData[i].rudderCommand;
                     ownData.Add(new BaseVessel.DataBundle(eta, linearSpeed, torqueSpeed, rudderAngle, rudderCommand, timeStamp));
                 }
+                if(sceneElements != null)
+                {
+                    sceneElements.transform.position -= dataPlayer.AnimationDelta;
+                }
+                if (checkForGrounding) await collisionPreditor.CheckGrounding(ownData);
                 dataPlayer.StartAnimation();
             }
         }
@@ -306,6 +338,28 @@ namespace VesselSimulator.Simulation
             }
         }
 
+        public void RaiseGrounding(string vesselName, Vector3 position, Quaternion rotation)
+        {
+            PopUpWithButton.Instance.PopupText($"Grounding Detected with vessel: {vesselName}.");
+            GameObject ownVessel;
+            if (!allVesselGameobjects.TryGetValue(ownVesselName, out ownVessel)) return;
+
+            HUD.SetOverlookingCam();
+            collisionPoint = new GameObject("collisionPoint");
+            var own = Instantiate(ownVessel, position, rotation, collisionPoint.transform);
+            var top = own.transform.Find("TOP");
+            if(top != null)
+            {
+                var camtop = top.transform.Find("CamTop");
+                if(camtop != null)
+                {
+                    Camera.main.transform.position = camtop.position;
+                    Camera.main.transform.rotation = camtop.rotation;
+                }
+            }
+
+        }
+
         public void RemoveCollisionObjectsIfPresent()
         {
             HUD.SetOverlookingCam();
@@ -318,5 +372,6 @@ namespace VesselSimulator.Simulation
     public interface IColissionHandler
     {
         public void RaiseCollision(string vesselName, Vector3 position, Vector3 heading, float time);
+        public void RaiseGrounding(string vesselName, Vector3 position, Quaternion rotation);
     }
 }

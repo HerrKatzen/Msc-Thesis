@@ -30,10 +30,10 @@ namespace VesselSimulator.UI
             colors.Add(Color.green);
             colors.Add(Color.red);
             colors.Add(Color.blue);
-            colors.Add(Color.yellow);
             colors.Add(Color.cyan);
+            colors.Add(Color.yellow);
             colors.Add(Color.magenta);
-            colors.Add(Color.white);
+            colors.Add(Color.black);
         }
 
         internal void SetDataBoundary(Vector2 east, Vector2 north)
@@ -106,6 +106,7 @@ namespace VesselSimulator.UI
                 Destroy(d);
             }
             dots.Clear();
+            usedColors.Clear();
         }
     }
 }

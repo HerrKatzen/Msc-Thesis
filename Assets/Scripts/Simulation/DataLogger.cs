@@ -283,6 +283,11 @@ namespace VesselSimulator.Simulation
                 {
                     text += d.eta.north + ", ";
                 }
+                text += "][";
+                foreach (var d in data.Value)
+                {
+                    text += d.eta.east + ", ";
+                }
             }
             File.WriteAllText(path, text);
         }
@@ -297,6 +302,19 @@ namespace VesselSimulator.Simulation
             {
                 noFilesOverlay.SetActive(true);
             }
+        }
+
+        public void Purge()
+        {
+            SimData = new Dictionary<string, List<BaseVessel.DataBundle>>();
+            vesselData = new List<VesselData.VesselMetaDataPackage>();
+            CheckPoints = new Dictionary<string, List<Vector3>>();
+            setupValuesData = new SetupValuesData();
+            ownVesselName = "";
+            minEast = float.MaxValue;
+            minNorth = float.MaxValue;
+            maxEast = float.MinValue;
+            maxNorth = float.MinValue;
         }
     }
 }

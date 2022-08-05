@@ -32,19 +32,7 @@ namespace VesselSimulator.Simulation
         private Dictionary<string, List<GameObject>> points;
         public Vector3 AnimationDelta { get; private set; }
 
-        [ContextMenu("Replay All Data")]
-        public void ReplayAllData()
-        {
-            ReplayAllDataAsync();
-        }
-
-        private async void ReplayAllDataAsync()
-        {
-            await SetupDataReplayAsync();
-            StartAnimation();
-        }
-
-        public async Task<Dictionary<string, GameObject>> SetupDataReplayAsync()
+        public async Task<Dictionary<string, GameObject>> SetupDataReplayAsync(Dictionary<string, VesselData.VesselMetaDataPackage> metaDataDict)
         {
             numberOfSteps = int.MaxValue;
             Time = 0f;
@@ -59,7 +47,14 @@ namespace VesselSimulator.Simulation
                                            new Vector3(vessel.Value[0].eta.east, -vessel.Value[0].eta.down, vessel.Value[0].eta.north),
                                            Quaternion.AngleAxis(vessel.Value[0].eta.yaw * Mathf.Rad2Deg, Vector3.up));
                 v.name = vessel.Key;
-                v.transform.localScale = new Vector3(7f, 7f, 50f); //TODO: get this data somehow
+                if (metaDataDict.TryGetValue(vessel.Key, out VesselData.VesselMetaDataPackage metaData))
+                {
+                    v.transform.localScale = new Vector3(metaData.beam, metaData.beam, metaData.length);
+                }
+                else
+                {
+                    v.transform.localScale = new Vector3(7f, 7f, 50f);
+                }
                 var trailRenderer = v.GetComponentInChildren<TrailRenderer>();
                 if (trailRenderer != null)
                 {
